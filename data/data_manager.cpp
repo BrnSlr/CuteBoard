@@ -25,6 +25,7 @@ QTBDataManager::QTBDataManager(QObject *parent) : QObject(parent)
 QTBDataManager::~QTBDataManager()
 {
     mThread->quit();
+    mThread->wait();
 
     QMap<QString, DataSourceInterface *>::const_iterator iter_datasource;
     for (iter_datasource = mDataSources.constBegin(); iter_datasource != mDataSources.constEnd(); ++iter_datasource)
