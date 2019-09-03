@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons8_settings_3_32px.png</file>
+        <file>icons8_down4_16px.png</file>
+        <file>icons8_up4_16px.png</file>
+        <file>icons8_add_folder_32px.png</file>
+        <file>icons8_checkmark_32px.png</file>
+        <file>icons8_delete_32px.png</file>
+        <file>icons8_opened_folder_32px.png</file>
+        <file>icons8_synchronize_32px.png</file>
+        <file>icons8_full_screen_32px.png</file>
+        <file>icons8_minus_math_32px.png</file>
+        <file>icons8_plus_math_32px_1.png</file>
+        <file>icons8_save_32px.png</file>
+        <file>icons8_edit_32px_1.png</file>
+        <file>icons8_circled_play_disabled_32px.png</file>
+        <file>icons8_circled_play_enabled_32px.png</file>
+        <file>icons8_design_enabled_32px.png</file>
+        <file>icons8_design_disabled_32px.png</file>
+        <file>icons8_home_disabled_32px.png</file>
+        <file>icons8_home_enabled_32px.png</file>
+        <file>elements/icons8_cosine_50px.png</file>
+        <file>elements/icons8_variable_50px.png</file>
+        <file>icons8_file_50px.png</file>
+        <file>icons8_file_filled_50px.png</file>
+        <file>icons8_group_of_projects_50px.png</file>
+        <file>elements/icons8_curve_50px.png</file>
+        <file>elements/icons8_hgauge_50px.png</file>
+        <file>elements/icons8_vgauge_50px.png</file>
+        <file>icons8_paint_palette_50px.png</file>
+        <file>elements/icons8_text_50px.png</file>
+        <file>icons8_cancel_50px.png</file>
+        <file>elements/icons8_matrix_50px.png</file>
+        <file>elements/icons8_color_50px.png</file>
+        <file>elements/icons8_speed_50px.png</file>
+        <file>icons8_past_32px.png</file>
+        <file>icons8_past_filled_32px.png</file>
+        <file>icons8_pause_32px.png</file>
+        <file>elements/icons8_alarms_50px.png</file>
+    </qresource>
+</RCC>
