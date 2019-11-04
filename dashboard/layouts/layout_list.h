@@ -21,6 +21,7 @@ public:
     QCPLayoutElement *elementAt(int index) const Q_DECL_OVERRIDE;
 
     void addElement(QCPLayoutElement *element);
+    void takeAllElements();
 
     double rowHeight() const;
     int rowSpacing() const;

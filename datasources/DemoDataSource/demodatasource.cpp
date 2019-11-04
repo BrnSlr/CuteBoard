@@ -4,8 +4,6 @@ DemoDataSource::DemoDataSource():
     DataSourceInterface()
 {
     setAutoStart(true);
-    setStatus(dssInitialized);
-
     mThread = new QThread(this);
     mTimer = new QTimer(nullptr); // _not_ this!
     mTimer->setInterval(10);
@@ -27,38 +25,40 @@ DemoDataSource::~DemoDataSource()
 
 }
 
-void DemoDataSource::startAcquisition()
+bool DemoDataSource::startAcquisition()
 {    
     mThread->start();
     registerParameters();
-    setStatus(dssStarted);
+    return true;
 }
 
-void DemoDataSource::stopAcquisition()
+bool DemoDataSource::stopAcquisition()
 {
     unregisterParameters();
     mThread->quit();
     mThread->wait();
-    setStatus(dssFinished);
+    return true;
 }
 
 void DemoDataSource::loadParameters()
 {
-    for(int i=0;i<25;i++) {
+    for(int i=0;i<2;i++) {
 
-        QSharedPointer<DemoParameter> param = QSharedPointer<DemoParameter>(new DemoParameter(QString("FLOAT_SINE_%1").arg(mListParam.count())));
-        param->setSignalOffset(0.1f);
-        param->setSignalAmplitude(float(QRandomGenerator::global()->generateDouble()));
-        param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
-        mListParam.append(param);
+            QSharedPointer<DemoParameter> param = QSharedPointer<DemoParameter>(new DemoParameter(QString("FLOAT_SINE_%1").arg(mListParam.count())));
+            param->setSignalOffset(0.1f);
+            param->setSignalAmplitude(float(QRandomGenerator::global()->generateDouble()));
+            param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("SINE");
+            mListParam.append(param);
     }
 
-    for(int i=0;i<25;i++) {
+    for(int i=0;i<2;i++) {
 
         QSharedPointer<DemoParameter> param = QSharedPointer<DemoParameter>(new DemoParameter(QString("FLOAT_SINE_%1").arg(mListParam.count())));
         param->setSignalOffset(20.0f);
         param->setSignalAmplitude(5.0f*float(QRandomGenerator::global()->generateDouble()));
         param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("SINE/FLOAT");
         mListParam.append(param);
     }
 
@@ -68,6 +68,7 @@ void DemoDataSource::loadParameters()
         param->setSignalOffset(50000.0f);
         param->setSignalAmplitude(3000.0f*float(QRandomGenerator::global()->generateDouble()));
         param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("SINE");
         mListParam.append(param);
     }
 
@@ -78,6 +79,7 @@ void DemoDataSource::loadParameters()
         param->setSignalOffset(0);
         param->setSignalAmplitude(127.0f *float(QRandomGenerator::global()->generateDouble()));
         param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("TRI/INT8");
         mListParam.append(param);
     }
 
@@ -88,6 +90,7 @@ void DemoDataSource::loadParameters()
         param->setSignalOffset(127.0f);
         param->setSignalAmplitude(127.0f *float(QRandomGenerator::global()->generateDouble()));
         param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("TRI/UINT8");
         mListParam.append(param);
     }
 
@@ -98,6 +101,7 @@ void DemoDataSource::loadParameters()
         param->setSignalOffset(0);
         param->setSignalAmplitude(32000.0f *float(QRandomGenerator::global()->generateDouble()));
         param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("SAWT/INT16");
         mListParam.append(param);
     }
 
@@ -108,6 +112,18 @@ void DemoDataSource::loadParameters()
         param->setSignalOffset(32000.0f);
         param->setSignalAmplitude(32000.0f *float(QRandomGenerator::global()->generateDouble()));
         param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("SAWT/UINT16");
+        mListParam.append(param);
+    }
+
+    for(int i=0;i<25;i++) {
+        QSharedPointer<DemoParameter> param = QSharedPointer<DemoParameter>(new DemoParameter(QString("UINT16_SQUARE_%1").arg(mListParam.count())));
+        param->setValueType(QTBDataValue::TYPE_UINT16);
+        param->setGeneratorType(DemoParameter::gtSquare);
+        param->setSignalOffset(32000);
+        param->setSignalAmplitude(32000 *float(QRandomGenerator::global()->generateDouble()));
+        param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("SQUARE/UINT16");
         mListParam.append(param);
     }
 
@@ -118,6 +134,7 @@ void DemoDataSource::loadParameters()
         param->setSignalOffset(123456878);
         param->setSignalAmplitude(2315687 *float(QRandomGenerator::global()->generateDouble()));
         param->setSignalPhase(QRandomGenerator::global()->generateDouble() * 2 * M_PI);
+        param->setSourceName("SQUARE/UINT32");
         mListParam.append(param);
     }
 
@@ -127,7 +144,7 @@ void DemoDataSource::registerParameters()
 {
     QList<QSharedPointer<DemoParameter>>::iterator i;
     for (i = mListParam.begin(); i != mListParam.end(); ++i) {
-        mDataManager->registerParameter((*i));
+        registerParameter((*i));
     }
 }
 
@@ -135,7 +152,7 @@ void DemoDataSource::unregisterParameters()
 {
     QList<QSharedPointer<DemoParameter>>::iterator i;
     for (i = mListParam.begin(); i != mListParam.end(); ++i)
-        mDataManager->unregisterParameter((*i)->parameterId());
+        unregisterParameter((*i)->parameterId());
 }
 
 void DemoDataSource::updateData()

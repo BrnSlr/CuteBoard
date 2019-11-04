@@ -7,7 +7,7 @@ QTBBitfieldsMapping::QTBBitfieldsMapping() :
 {
     for(int i=0; i< 32; i++) {
         mBitLogics.append(true);
-        mBitDescriptions.append(QString());
+        mBitDescriptions.append(QString("Bit %1 - No Description").arg(i));
     }
 }
 
@@ -19,14 +19,18 @@ QTBBitfieldsMapping::~QTBBitfieldsMapping()
 
 void QTBBitfieldsMapping::setBitLogic(int bitNumber, bool oneLogic)
 {
-    mBitLogics[bitNumber] = oneLogic;
-    mModified = true;
+    if(bitNumber < 32) {
+        mBitLogics[bitNumber] = oneLogic;
+        mModified = true;
+    }
 }
 
 void QTBBitfieldsMapping::setBitDescription(int bitNumber, QString description)
 {
-    mBitDescriptions[bitNumber]=std::move(description);
-    mModified = true;
+    if(bitNumber < 32) {
+        mBitDescriptions[bitNumber]=std::move(description);
+        mModified = true;
+    }
 }
 
 bool QTBBitfieldsMapping::modified() const

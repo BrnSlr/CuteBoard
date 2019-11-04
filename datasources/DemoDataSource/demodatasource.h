@@ -17,8 +17,8 @@ public:
     DemoDataSource();
     ~DemoDataSource() override;
 
-    void startAcquisition() override;
-    void stopAcquisition() override;
+    bool startAcquisition() override;
+    bool stopAcquisition() override;
 
     void loadParameters();
     void registerParameters();

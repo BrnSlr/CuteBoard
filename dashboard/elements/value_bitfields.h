@@ -22,10 +22,9 @@ public:
     void edit() Q_DECL_OVERRIDE;
     QString name() Q_DECL_OVERRIDE { return QString(BINTEXT_NAME);}
 
-    void addDashboardParameter(QSharedPointer<QTBDashboardParameter> dashParameter) Q_DECL_OVERRIDE;
-
-    void saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
-    void loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
+    QSharedPointer<QTBDashboardParameter> addParameter(QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings) Q_DECL_OVERRIDE;
+    QSharedPointer<QTBDashboardParameter> addParameter(QString paramLabel) Q_DECL_OVERRIDE;
+    void addParameter(QSharedPointer<QTBDashboardParameter> dashParameter) Q_DECL_OVERRIDE;
 
     void processNewSamples() Q_DECL_OVERRIDE;
     void processHistoricalSamples() Q_DECL_OVERRIDE;
@@ -44,6 +43,6 @@ protected:
     int mBitsSize;
 };
 
-static ElementRegister<QTBValueBitfields> bitfieldsRegister(QString(BINTEXT_NAME), ":/elements/icons8_matrix_50px.png");
+static ElementRegister<QTBValueBitfields> bitfieldsRegister(QString(BINTEXT_NAME),QTBDashboardElement::etSingleParam, ":/elements/icons8_matrix_50px.png");
 
 #endif // BINARYDISPLAY_H

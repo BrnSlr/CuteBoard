@@ -23,8 +23,11 @@ int main(int argc, char *argv[])
         qApp->setStyleSheet(ts.readAll());
     }
 
+    QApplication::addLibraryPath("/home/safran/ADLINK/Vortex_v2/Device/VortexOpenSplice/6.10.0p2/HDE/x86_64.linux/lib/");
+
     MainWindow mainWindow;
-    mainWindow.showMaximized();
+    mainWindow.setWindowState(Qt::WindowMaximized);
+    mainWindow.show();
 
     splash.finish(&mainWindow);
 

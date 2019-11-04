@@ -21,9 +21,6 @@ public slots:
     void stopDataSource();
     void updateStatus();
 
-private slots:
-    void on_workingDirectoryPushButton_clicked();
-
 private:
     Ui::QTBSettingsDialog *ui;
     QTBoard *mBoard;

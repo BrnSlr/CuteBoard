@@ -27,10 +27,8 @@ HomeWidget::HomeWidget(QWidget *parent) :
     ui->clickToCreateNewPro->setFont(fc);
     ui->clickToCreateNewPro->setMargin(10);
 
-    QString appSettingsPath = QApplication::applicationDirPath() + QDir::separator() + QString("Cuteboard.ini");
-    QSettings settings(appSettingsPath, QSettings::IniFormat);
-
-    ui->workingDirLineEdit->setText(settings.value(QString("DefaultWorkingDirectory"), QApplication::applicationDirPath()).toString());
+    QString dir = QDir::currentPath();
+    ui->workingDirLineEdit->setText(dir);
 }
 
 HomeWidget::~HomeWidget()
@@ -86,7 +84,7 @@ void HomeWidget::loadWorkingDirectory()
 
             if(files.size() == 1) {
                 QTBProject pro;
-                pro.load(dirPath,QDir(directories.filePath()).dirName());
+                pro.load(dirPath,QDir(directories.filePath()).dirName(), false);
 
                 QStringList list;
                 list << pro.name();
@@ -118,39 +116,38 @@ void HomeWidget::createProject()
                                          tr("Project name:"), QLineEdit::Normal,
                                          QDir::home().dirName(), &ok);
     if (ok && !text.isEmpty()) {
-        if(QDir::current().mkdir(text)) {
+//        qDebug() << QDir::current() << text;
 
-            QApplication::setOverrideCursor(Qt::WaitCursor);
-            QApplication::processEvents();
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        QApplication::processEvents();
 
-            QTBProject pro;
-            if(pro.generate(QDir::currentPath(), text)) {
+        QTBProject pro;
+        if(pro.generate(QDir::currentPath(), text)) {
 
-                int idRegular = QFontDatabase::addApplicationFont(":Roboto-Light.ttf");
-                QString familyRegular = QFontDatabase::applicationFontFamilies(idRegular).at(0);
-                QFont proFont = QFont(familyRegular);
-                proFont.setPointSize(16);
-                proFont.setUnderline(true);
+            int idRegular = QFontDatabase::addApplicationFont(":Roboto-Light.ttf");
+            QString familyRegular = QFontDatabase::applicationFontFamilies(idRegular).at(0);
+            QFont proFont = QFont(familyRegular);
+            proFont.setPointSize(16);
+            proFont.setUnderline(true);
 
-                QStringList list;
-                list << pro.name();
-                list << QString("\nCreated : ") + pro.creationDate().toString("yyyy/MM/dd hh:mm:ss") + QString("\n Last modified : ")  + pro.modificationDate().toString("yyyy/MM/dd hh:mm:ss");
-                QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget, list);
-                treeItem->setIcon(0,QIcon(QPixmap(":/icons8_group_of_projects_50px.png")));
-                treeItem->setFont(0, proFont);
-                //                treeItem->setSizeHint(0, QSize(250,60));
-                treeItem->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
-                treeItem->setTextAlignment(1, Qt::AlignRight | Qt::AlignBottom);
-                ui->treeWidget->resizeColumnToContents(0);
+            QStringList list;
+            list << pro.name();
+            list << QString("\nCreated : ") + pro.creationDate().toString("yyyy/MM/dd hh:mm:ss") + QString("\n Last modified : ")  + pro.modificationDate().toString("yyyy/MM/dd hh:mm:ss");
+            QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget, list);
+            treeItem->setIcon(0,QIcon(QPixmap(":/icons8_group_of_projects_50px.png")));
+            treeItem->setFont(0, proFont);
+            //                treeItem->setSizeHint(0, QSize(250,60));
+            treeItem->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
+            treeItem->setTextAlignment(1, Qt::AlignRight | Qt::AlignBottom);
+            ui->treeWidget->resizeColumnToContents(0);
 
-            } else {
-                QApplication::restoreOverrideCursor();
-                QApplication::processEvents();
-                QMessageBox::warning(this, "Project Creation", "Error : can't create project");
-            }
+        } else {
             QApplication::restoreOverrideCursor();
             QApplication::processEvents();
+            QMessageBox::warning(this, "Project Creation", "Error : can't create project");
         }
+        QApplication::restoreOverrideCursor();
+        QApplication::processEvents();
     }
 }
 

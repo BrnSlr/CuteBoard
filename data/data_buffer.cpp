@@ -1,10 +1,7 @@
 #include "data_buffer.h"
 
-QTBDataBuffer::QTBDataBuffer(quint16 periodMsMax, quint16 historySec) :
-    mIndexCount(0),
-    mPeriodMsMax(periodMsMax),
-    mHistorySec(historySec),
-    mHistoryAutoResize(true)
+QTBDataBuffer::QTBDataBuffer() :
+    mIndexCount(0)
 {
 
 }
@@ -12,7 +9,7 @@ QTBDataBuffer::QTBDataBuffer(quint16 periodMsMax, quint16 historySec) :
 quint32 QTBDataBuffer::createSerie()
 {
     mIndexCount ++;
-    mDataSeries.insert(mIndexCount, QTBDataSerie(mPeriodMsMax, mHistorySec));
+    mDataSeries.insert(mIndexCount, QTBDataSerie());
     return mIndexCount;
 }
 
@@ -30,21 +27,10 @@ void QTBDataBuffer::removeSerie(quint32 serieIndex)
         mDataSeries.remove(serieIndex);
 }
 
-void QTBDataBuffer::addSample(quint32 serieIndex, QTBDataSample sample)
-{
-    if(mDataSeries.contains(serieIndex)) {
-        mDataSeries[serieIndex].add(sample);
-        if(mHistoryAutoResize)
-            mDataSeries[serieIndex].removeBefore(sample.datationSec() - mHistorySec);
-    }
-}
-
 void QTBDataBuffer::addSample(quint32 serieIndex, double timestamp, QTBDataValue value)
 {
     if(mDataSeries.contains(serieIndex)) {
-        mDataSeries[serieIndex].add(QTBDataSample(timestamp, value));
-        if(mHistoryAutoResize)
-            mDataSeries[serieIndex].removeBefore(timestamp - mHistorySec);
+        mDataSeries[serieIndex].addSample(timestamp, value);
     }
 }
 

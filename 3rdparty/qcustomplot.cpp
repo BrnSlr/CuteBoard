@@ -25,6 +25,7 @@
 
 #include "qcustomplot.h"
 #include <numeric>
+#include <QElapsedTimer>
 
 
 /* including file 'src/vector2d.cpp', size 7340                              */
@@ -3983,10 +3984,10 @@ QVector<double> QCPLayout::getSectionSizes(QVector<double> maxSizes, QVector<dou
     if (outerIterations == sectionCount*2)
         qDebug() << Q_FUNC_INFO << "Exceeded maximum expected outer iteration count, layouting aborted. Input was:" << maxSizes << minSizes << stretchFactors << totalSize;
 
-//    qDebug() << Q_FUNC_INFO << sectionSizes << std::accumulate(sectionSizes.begin(),sectionSizes.end(),.0 );
-//    QVector<int> result(sectionCount);
-//    for (int i=0; i<sectionCount; ++i)
-//        result[i] = int(sectionSizes.at(i));
+    //    qDebug() << Q_FUNC_INFO << sectionSizes << std::accumulate(sectionSizes.begin(),sectionSizes.end(),.0 );
+    //    QVector<int> result(sectionCount);
+    //    for (int i=0; i<sectionCount; ++i)
+    //        result[i] = int(sectionSizes.at(i));
     return sectionSizes;
 }
 
@@ -4012,7 +4013,7 @@ QSizeF QCPLayout::getFinalMinimumOuterSize(const QCPLayoutElement *el)
         minOuter.rheight() += el->margins().top() + el->margins().bottom();
 
     return QSizeF(minOuter.width() > 0 ? minOuter.width() : minOuterHint.width(),
-                 minOuter.height() > 0 ? minOuter.height() : minOuterHint.height());;
+                  minOuter.height() > 0 ? minOuter.height() : minOuterHint.height());;
 }
 
 /*! \internal
@@ -4037,7 +4038,7 @@ QSizeF QCPLayout::getFinalMaximumOuterSize(const QCPLayoutElement *el)
         maxOuter.rheight() += el->margins().top() + el->margins().bottom();
 
     return QSizeF(maxOuter.width() < QWIDGETSIZE_MAX ? maxOuter.width() : maxOuterHint.width(),
-                 maxOuter.height() < QWIDGETSIZE_MAX ? maxOuter.height() : maxOuterHint.height());
+                  maxOuter.height() < QWIDGETSIZE_MAX ? maxOuter.height() : maxOuterHint.height());
 }
 
 
@@ -4655,7 +4656,7 @@ bool QCPLayoutGrid::take(QCPLayoutElement *element)
                 return true;
             }
         }
-//        qDebug() << Q_FUNC_INFO << "Element not in this layout, couldn't take";
+        //        qDebug() << Q_FUNC_INFO << "Element not in this layout, couldn't take";
     } else
         qDebug() << Q_FUNC_INFO << "Can't take null element";
     return false;
@@ -4984,9 +4985,9 @@ void QCPLayoutInset::updateLayout()
         if (mInsetPlacement.at(i) == ipFree)
         {
             insetRect = QRectF(rect().x()+rect().width()*mInsetRect.at(i).x(),
-                              rect().y()+rect().height()*mInsetRect.at(i).y(),
-                              rect().width()*mInsetRect.at(i).width(),
-                              rect().height()*mInsetRect.at(i).height());
+                               rect().y()+rect().height()*mInsetRect.at(i).y(),
+                               rect().width()*mInsetRect.at(i).width(),
+                               rect().height()*mInsetRect.at(i).height());
 
             if (insetRect.size().width() < finalMinSize.width())
                 insetRect.setWidth(finalMinSize.width());
@@ -14450,18 +14451,36 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
     mReplotQueued = false;
     emit beforeReplot();
 
+    //    QElapsedTimer timer;
+    //       timer.start();
+
     updateLayout();
+
+    //    qDebug() << "The updateLayout operation took" << timer.nsecsElapsed() << "nanoseconds";
+    //    timer.restart();
+
     // draw all layered objects (grid, axes, plottables, items, legend,...) into their buffers:
     setupPaintBuffers();
+
+    //    qDebug() << "The setupPaintBuffers operation took" << timer.nsecsElapsed() << "nanoseconds";
+    //    timer.restart();
+
     foreach (QCPLayer *layer, mLayers)
         layer->drawToPaintBuffer();
+
+    //    qDebug() << "The drawToPaintBuffer operation took" << timer.nsecsElapsed() << "nanoseconds";
+
     for (int i=0; i<mPaintBuffers.size(); ++i)
         mPaintBuffers.at(i)->setInvalidated(false);
+
+    //    timer.restart();
 
     if ((refreshPriority == rpRefreshHint && mPlottingHints.testFlag(QCP::phImmediateRefresh)) || refreshPriority==rpImmediateRefresh)
         repaint();
     else
         update();
+
+    //    qDebug() << "The repaint operation took" << timer.nsecsElapsed() << "nanoseconds";
 
     emit afterReplot();
     mReplotting = false;

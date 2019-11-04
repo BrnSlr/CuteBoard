@@ -11,8 +11,9 @@ class QTBValueDisplay : public QTBSingleDisplay
     Q_OBJECT
 public:
     enum DisplayOrientation {
-        doVertical,
-        doHorizontal
+        doVerticalAlignCenter,
+        doHorizontal,
+        doVerticalAlignLeftRight
     };
 
     QTBValueDisplay(QTBoard *dashboard = nullptr);
@@ -23,9 +24,7 @@ public:
     virtual QString name() Q_DECL_OVERRIDE { return QString(VALUEDISPLAY_NAME);}
 
     virtual void loadSettings(QSettings *settings) Q_DECL_OVERRIDE;
-    virtual void saveSettings(QSettings *settings) Q_DECL_OVERRIDE;    
-    virtual void saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
-    virtual void loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
+    virtual void saveSettings(QSettings *settings) Q_DECL_OVERRIDE;
 
     virtual void processNewSamples() Q_DECL_OVERRIDE;
     virtual void updateSizeConstraints() Q_DECL_OVERRIDE;
@@ -41,6 +40,6 @@ protected:
     ValueStringFormat mValueFormat;
 };
 
-static ElementRegister<QTBValueDisplay> valueDisplayRegister(QString(VALUEDISPLAY_NAME), ":/elements/icons8_variable_50px.png");
+static ElementRegister<QTBValueDisplay> valueDisplayRegister(QString(VALUEDISPLAY_NAME), QTBDashboardElement::etSingleParam, ":/elements/icons8_variable_50px.png");
 
 #endif // VALUESINGLEDISPLAY_H

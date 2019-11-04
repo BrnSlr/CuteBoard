@@ -106,7 +106,7 @@ void QTBCurvesTimeEditor::updateElement()
             if(dashParam) {
                 if(!mPropertiesWidgets.at(i)->isConnected()) {
                     mPropertiesWidgets.at(i)->updateParameterSettings(dashParam->exclusiveParameterConfiguration());
-                    dashParam->disconnectProperties();
+                    dashParam->disconnectSharedConfiguration();
                 } /*else {
                     dashParam->setConnected(true);
                 }*/
@@ -143,7 +143,7 @@ void QTBCurvesTimeEditor::updateTabs()
                     propertiesWidget->setEditionMode(PropertiesWidget::emElementStandAlone);
                 propertiesWidget->updateUi(dashParam->exclusiveParameterConfiguration());
             }
-            propertiesWidget->setPropertiesMode(QTBParameterConfiguration::cmCurve);
+            propertiesWidget->setPropertiesMode(QTBParameterConfiguration::cmGraph);
             propertiesWidget->setVisible(true);
             ui->tabWidget->addTab(propertiesWidget, dashParam->getDisplayedLabel());
 

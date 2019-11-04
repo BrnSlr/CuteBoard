@@ -29,6 +29,7 @@ public:
 
     QSharedPointer<QTBProject> project() const;
     QTBoard *board() const;
+    void setMode(DashboardToolbar::DashboardMode mode);
 
 signals:
     void fullScreenMode(bool fullscreen);

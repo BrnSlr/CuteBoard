@@ -8,6 +8,7 @@ QTBDataManager::QTBDataManager(QObject *parent) : QObject(parent)
     mParametersTimer->setSingleShot(true);
     mParametersTimer->setInterval(TEMPO_MS_PARAM_UPDATE);
     connect(mParametersTimer, SIGNAL(timeout()), this, SIGNAL(parametersUpdated()));
+    connect(this, SIGNAL(newParameters()), mParametersTimer, SLOT(start()));
     loadDataSources();
 
     mThread = new QThread(this);
@@ -27,58 +28,44 @@ QTBDataManager::~QTBDataManager()
     mThread->quit();
     mThread->wait();
 
-    QMap<QString, DataSourceInterface *>::const_iterator iter_datasource;
+    QMap<QString, DataSource *>::const_iterator iter_datasource;
     for (iter_datasource = mDataSources.constBegin(); iter_datasource != mDataSources.constEnd(); ++iter_datasource)
-        iter_datasource.value()->stopAcquisition();
+        iter_datasource.value()->stop();
 
     qDeleteAll(mDataSources);
 }
 
 bool QTBDataManager::registerParameter(const QSharedPointer<QTBParameter>& param)
 {
-    QMutexLocker locker(&mMutex);
-    if(!mParameterLabels.contains(param->label())) {
-        quint32 parameterId = mDataBuffer->createSerie();
-        param->setParameterId(parameterId);
-        mParameters.insert(parameterId, param);
-        mParameterLabels.insert(param->label(), parameterId);
+    if(param) {
+        QMutexLocker locker(&mMutex);
+        if(!mParameterLabels.contains(param->label())) {
+            quint32 parameterId = mDataBuffer->createSerie();
+            param->setParameterId(parameterId);
+            mParameters.insert(parameterId, param);
+            mParameterLabels.insert(param->label(), parameterId);
+        mParameterSourceNames.insert(param->label(), param->sourceName());
 
-        mParametersTimer->start();
-        return true;
-    }
-
-    return false;
-}
-
-bool QTBDataManager::registerParameterUnsafe(const QSharedPointer<QTBParameter>& param)
-{
-    if(!mParameterLabels.contains(param->label())) {
-        quint32 parameterId = mDataBuffer->createSerie();
-        param->setParameterId(parameterId);
-        mParameters.insert(parameterId, param);
-        mParameterLabels.insert(param->label(), parameterId);
-
-        mParametersTimer->start();
-        return true;
-    }
-
-    return false;
-}
-
-QList<bool> QTBDataManager::registerParameters(const QList<QSharedPointer<QTBParameter> >& listParam)
-{
-    QMutexLocker locker(&mMutex);
-    QList<bool> listStatus;
-
-    if(listParam.count() > 0) {
-        for(int i=0;i<listParam.count();i++) {
-            bool st = registerParameterUnsafe(listParam.at(i));
-            listStatus.append(st);
+            emit newParameters();
+            return true;
         }
-        mParametersTimer->start();
     }
 
-    return listStatus;
+    return false;
+}
+
+
+void QTBDataManager::unregisterParameter(const QSharedPointer<QTBParameter>& param)
+{
+    if(param) {
+        QMutexLocker locker(&mMutex);
+        mDataBuffer->removeSerie(param->parameterId());
+        mParameters.remove(param->parameterId());
+        mParameterLabels.remove(param->label());
+        mParameterSourceNames.remove(param->label());
+
+        emit newParameters();
+    }
 }
 
 void QTBDataManager::unregisterParameter(quint32 parameterId)
@@ -89,8 +76,9 @@ void QTBDataManager::unregisterParameter(quint32 parameterId)
         mDataBuffer->removeSerie(parameterId);
         mParameters.remove(parameterId);
         mParameterLabels.remove(label);
+        mParameterSourceNames.remove(label);
 
-        mParametersTimer->start();
+        emit newParameters();
     }
 }
 
@@ -104,8 +92,9 @@ void QTBDataManager::unregisterParameter(const QString& label)
             mDataBuffer->removeSerie(parameterId);
             mParameters.remove(parameterId);
             mParameterLabels.remove(label);
+            mParameterSourceNames.remove(label);
 
-            mParametersTimer->start();
+            emit newParameters();
         }
     }
 }
@@ -181,7 +170,7 @@ QTBDataSerie QTBDataManager::dataSerieUnsafe(quint32 serieIndex)
 void QTBDataManager::updateData()
 {
     QMutexLocker locker(&mMutex);
-    QMap<QString, DataSourceInterface *>::iterator i;
+    QMap<QString, DataSource *>::iterator i;
     for (i = mDataSources.begin(); i != mDataSources.end(); ++i) {
         i.value()->updateDashboardData();
     }
@@ -189,7 +178,13 @@ void QTBDataManager::updateData()
     emit dataUpdated(QDateTime::currentDateTimeUtc());
 }
 
-QMap<QString, DataSourceInterface *> QTBDataManager::dataSources() const
+QHash<QString, QString> QTBDataManager::parameterSourceNames() const
+{
+    QMutexLocker locker(&mMutex);
+    return mParameterSourceNames;
+}
+
+QMap<QString, DataSource *> QTBDataManager::dataSources() const
 {
     return mDataSources;
 }
@@ -199,12 +194,15 @@ void QTBDataManager::loadDataSources()
     QString appPath = qApp->applicationDirPath();
     QString libPath = appPath + QDir::separator() + QString("DataSources");
     QDir pluginsDir(libPath);
+
     for (const QString& dir: pluginsDir.entryList(QDir::Dirs))
     {
         QDir dataSrcDir(pluginsDir.absoluteFilePath(dir));
 
         for (const QString& filename: dataSrcDir.entryList(QDir::Files))
         {
+
+
             QFileInfo fileinfo(filename);
             if( fileinfo.suffix() != "so" && fileinfo.suffix() != "dll"){
                 continue;
@@ -221,9 +219,11 @@ void QTBDataManager::loadDataSources()
                     dataSource->setCurrentPath(pluginsDir.absoluteFilePath(dir));
                     mDataSources.insert(dir, dataSource);
                     if(dataSource->autoStart())
-                        dataSource->startAcquisition();
-                }
-            }
+                        dataSource->start();
+                }else
+                    qDebug() << "Not a datasource" << filename;
+            } else
+                qDebug() << pluginLoader.errorString();
         }
     }
 }

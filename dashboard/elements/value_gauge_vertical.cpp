@@ -45,7 +45,7 @@ void QTBValueGaugeVertical::initializeElement(QTBoard *dashboard)
         mAxisRect->axis(QCPAxis::atLeft)->setTickLabelPadding(3);
 
         mAxisRect->axis(QCPAxis::atBottom)->setRange(0.5, 1.5);
-        mAxisRect->setMinimumMargins(QMargins(15, 15, 15, 15));
+        mAxisRect->setMinimumMargins(QMargins(50, 15, 50, 15));
 
         mBar = new QCPBars(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atRight));
         mBar->setWidth(1);
@@ -143,14 +143,6 @@ void QTBValueGaugeVertical::saveSettings(QSettings *settings)
     settings->endGroup();
 }
 
-void QTBValueGaugeVertical::addDashboardParameter(QSharedPointer<QTBDashboardParameter> dashParameter)
-{
-    QTBDashboardElement::addDashboardParameter(dashParameter);
-
-    mValueAxisRange.lower = 0.0;
-    mValueAxisRange.upper = 0.0;
-}
-
 void QTBValueGaugeVertical::processNewSamples()
 {
     QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(0);
@@ -217,6 +209,7 @@ void QTBValueGaugeVertical::updateSizeConstraints()
         if(mRect.height() < singleElementSize.height())
             labelSize.setHeight(mRect.height());
 
+        mTextValue->setMinimumSize(mRect.width(), 0.5 * labelSize.height());
         mTextValue->setMaximumSize(mRect.width(), 0.5 * labelSize.height());
     }
 
@@ -225,12 +218,12 @@ void QTBValueGaugeVertical::updateSizeConstraints()
 
 void QTBValueGaugeVertical::checkSizeAndVisibility()
 {
-    if(mValueVisible) {
-        if(!mTextValue->visible()) {
-            mTextValue->setMaximumSize(mRect.width(), 0);
-            mMainLayout->needUpdate(true);
-        }
-    }
+//    if(mValueVisible) {
+//        if(!mTextValue->visible()) {
+//            mTextValue->setMaximumSize(mRect.width(), 0);
+//            mMainLayout->needUpdate(true);
+//        }
+//    }
     QTBValueDisplay::checkSizeAndVisibility();
 }
 

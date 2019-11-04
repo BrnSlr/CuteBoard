@@ -12,10 +12,10 @@ PropertiesPickerWidget::PropertiesPickerWidget(QWidget *parent) :
     ui(new Ui::PropertiesPickerWidget)
 {
     ui->setupUi(this);
-    connect(ui->tableWidget, &PropertiesTableWidget::editProperties,
+    connect(ui->treeWidget, &PropertiesTableWidget::editProperties,
             this, &PropertiesPickerWidget::editProperties);
 
-    connect(ui->tableWidget, &PropertiesTableWidget::cellDoubleClicked,
+    connect(ui->treeWidget, &PropertiesTableWidget::itemDoubleClicked,
             this, &PropertiesPickerWidget::itemDoubleClicked);
 }
 
@@ -54,33 +54,39 @@ void PropertiesPickerWidget::on_reloadButton_clicked()
 
 void PropertiesPickerWidget::updateList()
 {
-    ui->tableWidget->setRowCount(0);
-    QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration>>> parametersSettings = mProject->parametersSettings();
+        ui->treeWidget->clear();
+        QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration>>> parametersSettings = mProject->parametersSettings();
 
-    QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration>>>::const_iterator i;
-    for (i = parametersSettings.begin(); i != parametersSettings.end(); i++) {
-        const QString& label = i.key();
-        QStringList descrList = i.value().keys();
+        QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration>>>::const_iterator i;
+        for (i = parametersSettings.begin(); i != parametersSettings.end(); i++) {
+            const QString& label = i.key();
+            QStringList descrList = i.value().keys();
 
-        if(!descrList.isEmpty()) {
-            foreach (const QString &str, descrList) {
-                QTableWidgetItem *itemLabel = new QTableWidgetItem(label);
-                QTableWidgetItem *itemConfig = new QTableWidgetItem(str);
+            if(!descrList.isEmpty()) {
 
-                ui->tableWidget->insertRow(ui->tableWidget->rowCount());
-                ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 0, itemLabel);
-                ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 1, itemConfig);
+                QTreeWidgetItem *parentItem = new QTreeWidgetItem();
+                parentItem->setText(0,label);
+                parentItem->setData(0,Qt::UserRole, label);
+
+                foreach (const QString &str, descrList) {
+                    QTreeWidgetItem *childItem = new QTreeWidgetItem();
+                    childItem->setText(0,str);
+                    parentItem->addChild(childItem);
+                }
+                ui->treeWidget->addTopLevelItem(parentItem);
             }
         }
-    }
 }
 
-void PropertiesPickerWidget::itemDoubleClicked(int row, int col )
+void PropertiesPickerWidget::itemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-    Q_UNUSED(col)
-    QString label = ui->tableWidget->item(row,0)->text();
-    QString descr = ui->tableWidget->item(row,1)->text();
-    editProperties(label, descr);
+    Q_UNUSED(column)
+    QTreeWidgetItem *parentItem = item->parent();
+    if(parentItem) {
+        QString descr = item->text(0);
+        QString label = parentItem->text(0);
+        editProperties(label, descr);
+    }
 }
 
 void PropertiesPickerWidget::editProperties(QString label, QString descr)

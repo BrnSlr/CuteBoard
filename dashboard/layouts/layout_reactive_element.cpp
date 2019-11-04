@@ -3,7 +3,6 @@
 QTBLayoutReactiveElement::QTBLayoutReactiveElement(QTBoard *dashboard) :
     QCPLayoutElement (dashboard),
     mTransparentBackground(false)
-  //    mBackgroundColor(QColor(25,35,45))
 {
 }
 
@@ -34,6 +33,7 @@ void QTBLayoutReactiveElement::initializeElement(QTBoard *dashboard)
     setLayer(QLatin1String("elements_background"));
 
     mBackgroundColor = dashboard->backColor();
+    mBrush = QBrush(mBackgroundColor);
 }
 
 void QTBLayoutReactiveElement::draw(QCPPainter *painter)
@@ -44,10 +44,15 @@ void QTBLayoutReactiveElement::draw(QCPPainter *painter)
 void QTBLayoutReactiveElement::drawBackground(QCPPainter *painter)
 {
     if(!mTransparentBackground) {
-        painter->setBrush( QBrush(mBackgroundColor));
+        painter->setBrush(mBrush);
         painter->setPen(Qt::NoPen);
         painter->drawRect(mOuterRect);
     }
+}
+
+void QTBLayoutReactiveElement::setBrush(const QBrush &brush)
+{
+    mBrush = brush;
 }
 
 bool QTBLayoutReactiveElement::transparentBackground() const

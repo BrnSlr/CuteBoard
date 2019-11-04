@@ -19,6 +19,7 @@ QTBPlotTime::QTBPlotTime(QTBoard *dashboard) :
     mThresholdsVisible(true)
 {
     setParametersMaxCount(8);
+    setConfigurationMode(QTBParameterConfiguration::cmGraph);
 }
 
 void QTBPlotTime::clearElement()
@@ -50,6 +51,7 @@ void QTBPlotTime::initializeElement(QTBoard *dashboard)
         mLayout->setParent(this);
 
         mAxisRect = new QTBAxisRect(dashboard);
+        mAxisRect->setMinimumMargins(QMargins(50,15,10,15));
 
         mLegendLayout = new QTBLayoutGrid();
         mLegendLayout->initializeParentPlot(dashboard);
@@ -123,21 +125,20 @@ void QTBPlotTime::loadSettings(QSettings *settings)
     settings->endGroup();
 }
 
-void QTBPlotTime::loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+void QTBPlotTime::loadConfigurations(QSettings *settings)
 {
-    Q_UNUSED(mode)
-    QTBDashboardElement::loadParametersSettings(settings, QTBParameterConfiguration::cmCurve);
+    QTBDashboardElement::loadConfigurations(settings);
 
     for(int i=0; i< parametersCount(); i++) {
         QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(i);
         if(dashParam) {
             auto *legend = new QTBValueDisplay(mBoard);
             legend->initializeElement(mBoard);
-            legend->addDashboardParameter(dashParam);
+            legend->addParameter(dashParam);
             legend->setTransparentBackground(true);
             if(mLegendPosition == lpLeft ||
                     mLegendPosition == lpRight) {
-                legend->setOrientation(QTBValueDisplay::doVertical);
+                legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
             } else {
                 legend->setOrientation(QTBValueDisplay::doHorizontal);
             }
@@ -148,10 +149,7 @@ void QTBPlotTime::loadParametersSettings(QSettings *settings, QTBParameterConfig
             mLegendLayout->addElement(mLegendEmptyElementLast);
             mLegendLayout->setRowStretchFactor(mLegendLayout->rowCount()-1 , 0.01);
 
-            //            mLegendLayout->needUpdate(true);
-            //            mLayout->needUpdate(true);
-
-            mBoard->addGraph(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
+            new QTBGraph(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
         }
     }
 
@@ -185,20 +183,27 @@ void QTBPlotTime::saveSettings(QSettings *settings)
     settings->endGroup();
 }
 
-void QTBPlotTime::saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+QSharedPointer<QTBDashboardParameter> QTBPlotTime::addParameter(QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings)
 {
-    Q_UNUSED(mode)
-    QTBDashboardElement::saveParametersSettings(settings, QTBParameterConfiguration::cmCurve);
+    QSharedPointer<QTBDashboardParameter> dashParam = QTBDashboardElement::addParameter(parameterSettings);
+    return dashParam;
 }
 
-void QTBPlotTime::addDashboardParameter(QSharedPointer<QTBDashboardParameter> dashParameter)
+QSharedPointer<QTBDashboardParameter> QTBPlotTime::addParameter(QString paramLabel)
 {
-    QTBDashboardElement::addDashboardParameter(dashParameter);
+    QSharedPointer<QTBDashboardParameter> dashParam = QTBDashboardElement::addParameter(paramLabel);
+    return dashParam;
+}
 
-    if(parametersCount() == parametersMaxCount()) {
+void QTBPlotTime::addParameter(QSharedPointer<QTBDashboardParameter> dashParameter)
+{
+    QTBDashboardElement::addParameter(dashParameter);
+
+    if(mLegendLayout->elementCount() == parametersMaxCount() + 2) {
+
         auto *legend = qobject_cast<QTBValueDisplay *>(mLegendLayout->elementAt(parametersCount()));
         if(legend) {
-            legend->addDashboardParameter(dashParameter);
+            legend->addParameter(dashParameter);
             mAxisRect->graphs().last()->data()->clear();
 
             if(mBoard->dataManager()) {
@@ -211,11 +216,11 @@ void QTBPlotTime::addDashboardParameter(QSharedPointer<QTBDashboardParameter> da
     } else {
         auto *legend = new QTBValueDisplay(mBoard);
         legend->initializeElement(mBoard);
-        legend->addDashboardParameter(dashParameter);
+        legend->addParameter(dashParameter);
         legend->setTransparentBackground(true);
         if(mLegendPosition == lpLeft ||
                 mLegendPosition == lpRight) {
-            legend->setOrientation(QTBValueDisplay::doVertical);
+            legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
         } else {
             legend->setOrientation(QTBValueDisplay::doHorizontal);
         }
@@ -227,7 +232,7 @@ void QTBPlotTime::addDashboardParameter(QSharedPointer<QTBDashboardParameter> da
         mLegendLayout->setRowStretchFactor(mLegendLayout->rowCount()-1 , 0.01);
         mLegendLayout->needUpdate(true);
 
-        mBoard->addGraph(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
+        new QTBGraph(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
 
         if(mBoard->dataManager()) {
             QTBDataSerie serie = mBoard->dataManager()->dataSerie(dashParameter->getParameterId());
@@ -379,45 +384,127 @@ void QTBPlotTime::updateThresholdsItems()
     for(int i=0; i< parametersCount(); i++) {
         QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(i);
         if(dashParam) {
-            if(mThresholdsVisible) {
-                if(dashParam->parameterConfiguration()->itemsThresholdsVisible()) {
-                    QMap<double, QTBColorSettings> lowThr = dashParam->parameterConfiguration()->thresholdsSettingsRef().lowThresholds();
-                    QMap<double, QTBColorSettings>::iterator lowIt;
-                    for (lowIt = lowThr.begin();
-                         lowIt != lowThr.end(); ++lowIt) {
+            QTBGraph *graph = nullptr;
+            if(i < mAxisRect->graphs().count()) {
+                graph = qobject_cast<QTBGraph*>(mAxisRect->graphs().at(i));
+                if(graph)
+                    graph->clearColoredSegments();
+            }
+            double lower = -std::numeric_limits<double>::max();
+            QMap<double, QTBColorSettings> lowThr = dashParam->parameterConfiguration()->thresholdsSettingsRef().lowThresholds();
+            QMap<double, QTBColorSettings>::iterator lowIt;
+            for (lowIt = lowThr.begin();
+                 lowIt != lowThr.end(); ++lowIt) {
 
-                        auto* l = new QCPItemStraightLine(mBoard);
-                        l->point1->setType(QCPItemPosition::ptPlotCoords);
-                        l->point2->setType(QCPItemPosition::ptPlotCoords);
-                        l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
-                        l->point2->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
-                        l->point1->setCoords(0.0, lowIt.key());
-                        l->point2->setCoords(1.0, lowIt.key());
-                        l->setClipAxisRect(mAxisRect);
-                        l->setClipToAxisRect(true);
-                        QPen pen = QPen(lowIt.value().color());
-                        pen.setStyle(Qt::DashDotLine);
-                        l->setPen(pen);
+
+                if(mThresholdsVisible && dashParam->parameterConfiguration()->itemsThresholdsVisible()) {
+                    auto* l = new QCPItemStraightLine(mBoard);
+                    l->point1->setType(QCPItemPosition::ptPlotCoords);
+                    l->point2->setType(QCPItemPosition::ptPlotCoords);
+                    l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
+                    l->point2->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
+                    l->point1->setCoords(0.0, lowIt.key());
+                    l->point2->setCoords(1.0, lowIt.key());
+                    l->setClipAxisRect(mAxisRect);
+                    l->setClipToAxisRect(true);
+                    QColor color = lowIt.value().color();
+                    color.setAlpha(150);
+                    QPen pen = QPen(color);
+                    pen.setStyle(Qt::DashDotDotLine);
+                    l->setPen(pen);
+                }
+
+                if(graph && dashParam->parameterConfiguration()->itemColorMode() == QTBParameterConfiguration::icDynamic) {
+
+                    QBrush brush;
+                    switch(dashParam->parameterConfiguration()->graphBrush()) {
+                    case QTBParameterConfiguration::bsNone :
+                    {
+                        brush = Qt::NoBrush;
+                    }
+                        break;
+                    case QTBParameterConfiguration::bsFilled :
+                    {
+                        QColor color = lowIt.value().color();
+                        color.setAlpha(50);
+                        brush = QBrush(color);
+                    }
+                        break;
+                    case QTBParameterConfiguration::bsGradient :
+                        QColor color = lowIt.value().color();
+                        color.setAlpha(200);
+
+                        QColor color2 = color;
+                        color2.setAlpha(150);
+                        QLinearGradient gradient(0, 1, 0, 0);
+                        gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
+                        gradient.setColorAt(1, color);
+                        gradient.setColorAt(0.95, color2);
+                        gradient.setColorAt(0, QColor::fromRgbF(0, 0, 0, 0));
+                        brush = QBrush(gradient);
+                        break;
                     }
 
-                    QMap<double, QTBColorSettings> highThr = dashParam->parameterConfiguration()->thresholdsSettingsRef().highThresholds();
-                    QMap<double, QTBColorSettings>::iterator highIt;
-                    for (highIt = highThr.begin();
-                         highIt != highThr.end(); ++highIt) {
+                    graph->addColoredSegment(lower, lowIt.key(), QPen(lowIt.value().color()), brush);
+                    lower = lowIt.key();
+                }
+            }
 
-                        auto* l = new QCPItemStraightLine(mBoard);
-                        l->point1->setType(QCPItemPosition::ptPlotCoords);
-                        l->point2->setType(QCPItemPosition::ptPlotCoords);
-                        l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
-                        l->point2->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
-                        l->point1->setCoords(0.0, highIt.key());
-                        l->point2->setCoords(1.0, highIt.key());
-                        l->setClipAxisRect(mAxisRect);
-                        l->setClipToAxisRect(true);
-                        QPen pen = QPen(highIt.value().color());
-                        pen.setStyle(Qt::DashDotLine);
-                        l->setPen(pen);
+            QMap<double, QTBColorSettings> highThr = dashParam->parameterConfiguration()->thresholdsSettingsRef().highThresholds();
+            QMapIterator<double, QTBColorSettings> highIt(highThr);
+            highIt.toBack();
+            double upper = std::numeric_limits<double>::max();
+            while (highIt.hasPrevious()) {
+                highIt.previous();
+                if(mThresholdsVisible && dashParam->parameterConfiguration()->itemsThresholdsVisible()) {
+                    auto* l = new QCPItemStraightLine(mBoard);
+                    l->point1->setType(QCPItemPosition::ptPlotCoords);
+                    l->point2->setType(QCPItemPosition::ptPlotCoords);
+                    l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
+                    l->point2->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
+                    l->point1->setCoords(0.0, highIt.key());
+                    l->point2->setCoords(1.0, highIt.key());
+                    l->setClipAxisRect(mAxisRect);
+                    l->setClipToAxisRect(true);
+                    QColor color = highIt.value().color();
+                    color.setAlpha(150);
+                    QPen pen = QPen(color);
+                    pen.setStyle(Qt::DashDotDotLine);
+                    l->setPen(pen);
+                }
+
+                if(graph && dashParam->parameterConfiguration()->itemColorMode() == QTBParameterConfiguration::icDynamic) {
+                    QBrush brush;
+                    switch(dashParam->parameterConfiguration()->graphBrush()) {
+                    case QTBParameterConfiguration::bsNone :
+                    {
+                        brush = Qt::NoBrush;
                     }
+                        break;
+                    case QTBParameterConfiguration::bsFilled :
+                    {
+                        QColor color = highIt.value().color();
+                        color.setAlpha(50);
+                        brush = QBrush(color);
+                    }
+                        break;
+                    case QTBParameterConfiguration::bsGradient :
+                        QColor color = highIt.value().color();
+                        color.setAlpha(200);
+
+                        QColor color2 = color;
+                        color2.setAlpha(150);
+                        QLinearGradient gradient(0, 1, 0, 0);
+                        gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
+                        gradient.setColorAt(1, color);
+                        gradient.setColorAt(0.95, color2);
+                        gradient.setColorAt(0, QColor::fromRgbF(0, 0, 0, 0));
+                        brush = QBrush(gradient);
+                        break;
+                    }
+
+                    graph->addColoredSegment(highIt.key(), upper, QPen(highIt.value().color()), brush);
+                    upper = highIt.key();
                 }
             }
         }
@@ -430,13 +517,44 @@ void QTBPlotTime::updateGraphsStyle()
         QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(i);
         if(dashParam) {
             if(i < mAxisRect->graphs().count()) {
-                mAxisRect->graphs().at(i)->setPen(dashParam->parameterConfiguration()->defaultColorSettingsRef().color());
-                if(dashParam->parameterConfiguration()->graphBrush()) {
+                if(dashParam->parameterConfiguration()->itemColorMode() == QTBParameterConfiguration::icCustom)
+                    mAxisRect->graphs().at(i)->setPen(dashParam->parameterConfiguration()->itemStaticColor());
+                else
+                    mAxisRect->graphs().at(i)->setPen(dashParam->parameterConfiguration()->defaultColorSettingsRef().color());
+
+                switch(dashParam->parameterConfiguration()->graphBrush()) {
+                case QTBParameterConfiguration::bsNone :
+                {
+                    mAxisRect->graphs().at(i)->setBrush(Qt::NoBrush);
+                }
+                    break;
+                case QTBParameterConfiguration::bsFilled :
+                {
                     QColor color = dashParam->parameterConfiguration()->defaultColorSettingsRef().color();
                     color.setAlpha(50);
                     mAxisRect->graphs().at(i)->setBrush(color);
-                } else {
-                    mAxisRect->graphs().at(i)->setBrush(Qt::NoBrush);
+                    QTBGraph *graph = qobject_cast<QTBGraph*>(mAxisRect->graphs().at(i));
+                    if(graph)
+                        graph->setFillStyle(QTBGraph::fsZero);
+                }
+                    break;
+                case QTBParameterConfiguration::bsGradient :
+                    QColor color = dashParam->parameterConfiguration()->defaultColorSettingsRef().color();
+                    color.setAlpha(200);
+                    QColor color2 = color;
+                    color2.setAlpha(150);
+                    QLinearGradient gradient(0, 1, 0, 0);
+                    gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
+                    gradient.setColorAt(1, color);
+                    gradient.setColorAt(0.95, color2);
+                    gradient.setColorAt(0, QColor::fromRgbF(0, 0, 0, 0));
+                    QBrush brush(gradient);
+
+                    mAxisRect->graphs().at(i)->setBrush(brush);
+                    QTBGraph *graph = qobject_cast<QTBGraph*>(mAxisRect->graphs().at(i));
+                    if(graph)
+                        graph->setFillStyle(QTBGraph::fsBottom);
+                    break;
                 }
                 mAxisRect->graphs().at(i)->setLineStyle(dashParam->parameterConfiguration()->graphLineStyle());
                 mAxisRect->graphs().at(i)->setScatterStyle(dashParam->parameterConfiguration()->scatterStyle());
@@ -447,7 +565,6 @@ void QTBPlotTime::updateGraphsStyle()
 
 void QTBPlotTime::updateLayout()
 {
-
     mLayout->take(mAxisRect);
     mLayout->take(mLegendLayout);
     mLegendLayout->setVisible(false);
@@ -469,7 +586,7 @@ void QTBPlotTime::updateLayout()
         for(int i=0;i<mLegendLayout->elementCount();i++) {
             auto * element = qobject_cast<QTBValueDisplay *>(mLegendLayout->elementAt(i));
             if(element) {
-                element->setOrientation(QTBValueDisplay::doVertical);
+                element->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
             }
         }
 
@@ -494,7 +611,7 @@ void QTBPlotTime::updateLayout()
         for(int i=0;i<mLegendLayout->elementCount();i++) {
             auto * element = qobject_cast<QTBValueDisplay *>(mLegendLayout->elementAt(i));
             if(element) {
-                element->setOrientation(QTBValueDisplay::doVertical);
+                element->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
             }
         }
         mLegendLayout->setRowStretchFactor(0,0.01);
@@ -544,6 +661,11 @@ void QTBPlotTime::updateLayout()
         mLegendLayout->setColumnStretchFactor(mLegendLayout->elementCount() - 1,0.01);
         break;
     }
+
+    if(mYAxisLabelsVisible)
+        mAxisRect->setMinimumMargins(QMargins(50,15,22,15));
+    else
+        mAxisRect->setMinimumMargins(QMargins(22,15,22,15));
 }
 
 void QTBPlotTime::updateElement()

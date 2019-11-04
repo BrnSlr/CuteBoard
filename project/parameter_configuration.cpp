@@ -1,20 +1,8 @@
 #include "parameter_configuration.h"
+#include "project/string_util.h"
 #include <QDir>
 #include <QSettings>
 
-QString removeSpecialChars(QString s) {
-    s.replace("â", "a"); s.replace("ä", "a"); s.replace("á", "a"); s.replace("à", "a"); s.replace("ã", "a"); s.replace("å", "a"); //a
-    s.replace("ç", "c"); //c
-    s.replace("ê", "e"); s.replace("ë", "e"); s.replace("é", "e"); s.replace("è", "e"); //e
-    s.replace("î", "i"); s.replace("ï", "i"); s.replace("í", "i"); s.replace("ì", "i"); //i
-    s.replace("ñ", "n"); //n
-    s.replace("ô", "o"); s.replace("ö", "o"); s.replace("ó", "o"); s.replace("ò", "o"); s.replace("õ", "o"); s.replace("ø", "o"); //o
-    s.replace("ß", "ss"); //ß -> ss
-    s.replace("û", "u"); s.replace("ü", "u"); s.replace("ú", "u"); s.replace("ù", "u"); //u
-    s.replace("æ", "ae");
-    s.replace( QRegExp( "[" + QRegExp::escape( "\\/:*?\"<>| " ) + "]" ), QString( "_" ) );
-    return s;
-}
 
 QTBParameterConfiguration::QTBParameterConfiguration() :
     mPrecision(2),
@@ -25,7 +13,7 @@ QTBParameterConfiguration::QTBParameterConfiguration() :
     mRangeMinimum(-1000),
     mItemsThresholdsVisible(true),
     mGraphLineStyle(QCPGraph::lsLine),
-    mGraphBrush(true),
+    mGraphBrush(BrushStyle::bsGradient),
     mCurveLineStyle(QCPCurve::lsLine),
     mScatterShape(QCPScatterStyle::ssNone),
     mScatterSize(10),
@@ -37,6 +25,8 @@ QTBParameterConfiguration::QTBParameterConfiguration() :
     mOutOfRangeColorSettings.setColor(Qt::darkRed);
     mDefaultColorSettings.setMode(QTBColorSettings::cmAuto);
     mDefaultColorSettings.setColor(QColor(QString("#8AB8FF")));
+    mItemStaticColor = QColor(QString("#8AB8FF"));
+    mItemColorMode = icBase;
 }
 
 void QTBParameterConfiguration::saveToFile(const QString& saveDirectory)
@@ -45,7 +35,7 @@ void QTBParameterConfiguration::saveToFile(const QString& saveDirectory)
     name = removeSpecialChars(name);
     QString descr = mDescription;
     descr = removeSpecialChars(descr);
-    QString settingsPath = saveDirectory + QDir::separator() + name + QString( "_" ) + descr  + QString(".prop");
+    QString settingsPath = saveDirectory + QDir::separator() + name + QString( "_" ) + descr  + QString(".param");
 
     QSettings settings(settingsPath, QSettings::IniFormat);
     settings.clear();
@@ -60,7 +50,7 @@ void QTBParameterConfiguration::loadFromFile(const QString& settingsFile)
     load(&settings);
 }
 
-void QTBParameterConfiguration::save(QSettings *settings, ConfigurationModule mode)
+void QTBParameterConfiguration::save(QSettings *settings, ConfigurationMode mode)
 {
     settings->setValue("Description", mDescription);
     settings->setValue("Label", mLabel);
@@ -75,6 +65,8 @@ void QTBParameterConfiguration::save(QSettings *settings, ConfigurationModule mo
     if(mode != cmState && mode != cmBitFields) {
         settings->setValue("Precision", mPrecision);
         settings->setValue("ThresholdsVisible", mItemsThresholdsVisible);
+        settings->setValue("ItemColorMode", mItemColorMode);
+        settings->setValue("ItemColor", mItemStaticColor.name());
 
         settings->setValue("ValidRange", mValidRange);
         settings->setValue("RangeMaximum", mRangeMaximum);
@@ -84,19 +76,41 @@ void QTBParameterConfiguration::save(QSettings *settings, ConfigurationModule mo
         settings->setValue("OutOfRangeColor", mOutOfRangeColorSettings.color().name());
         settings->setValue("OutOfRangeColorMode", mOutOfRangeColorSettings.mode());
 
-        if(mode == cmCurve || mode == cmFull) {
+        if(mode == cmCurveY) {
+            settings->beginGroup("Plottable");
+            settings->setValue("ScatterShape", mScatterShape);
+            settings->setValue("ScatterSize", mScatterSize);
+
+            settings->beginGroup("Curve");
+            settings->setValue("LineStyle", mCurveLineStyle);
+            settings->setValue("TracerVisible", mCurveTracerVisible);
+            settings->endGroup();
+
+            settings->endGroup();
+        } else if(mode == cmGraph ) {
             settings->beginGroup("Plottable");
             settings->setValue("ScatterShape", mScatterShape);
             settings->setValue("ScatterSize", mScatterSize);
 
             settings->beginGroup("Graph");
-            settings->setValue("BrushEnabled", mGraphBrush);
+            settings->setValue("Brush", mGraphBrush);
             settings->setValue("LineStyle", mGraphLineStyle);
             settings->endGroup();
+
+            settings->endGroup();
+        } else if(mode == cmFull ) {
+            settings->beginGroup("Plottable");
+            settings->setValue("ScatterShape", mScatterShape);
+            settings->setValue("ScatterSize", mScatterSize);
 
             settings->beginGroup("Curve");
             settings->setValue("LineStyle", mCurveLineStyle);
             settings->setValue("TracerVisible", mCurveTracerVisible);
+            settings->endGroup();
+
+            settings->beginGroup("Graph");
+            settings->setValue("Brush", mGraphBrush);
+            settings->setValue("LineStyle", mGraphLineStyle);
             settings->endGroup();
 
             settings->endGroup();
@@ -153,6 +167,7 @@ void QTBParameterConfiguration::save(QSettings *settings, ConfigurationModule mo
                     itStateColor.next();
 
                     settings->setArrayIndex(statesCount);
+                    settings->setValue("Active", mStatesSettings.statesActive().value(itStateColor.key()));
                     settings->setValue("Color", itStateColor.value().color().name());
                     settings->setValue("Mode", itStateColor.value().mode());
                     settings->setValue("Value", itStateColor.key());
@@ -181,7 +196,7 @@ void QTBParameterConfiguration::save(QSettings *settings, ConfigurationModule mo
     }
 }
 
-void QTBParameterConfiguration::load(QSettings *settings, ConfigurationModule mode)
+void QTBParameterConfiguration::load(QSettings *settings, ConfigurationMode mode)
 {
     mLabel= settings->value("Label").toString();
     mDescription= settings->value("Description").toString();
@@ -196,6 +211,8 @@ void QTBParameterConfiguration::load(QSettings *settings, ConfigurationModule mo
     if(mode != cmState && mode != cmBitFields) {
         mPrecision = settings->value("Precision").toInt();
         mItemsThresholdsVisible = settings->value("ThresholdsVisible").toBool();
+        mItemColorMode = ItemColor(settings->value("ItemColorMode").toInt());
+        mItemStaticColor = QColor(settings->value("ItemColor").toString());
 
         mValidRange= settings->value("ValidRange").toBool();
         mRangeMaximum= settings->value("RangeMaximum").toDouble();
@@ -207,20 +224,44 @@ void QTBParameterConfiguration::load(QSettings *settings, ConfigurationModule mo
         mOutOfRangeColorSettings.setMode(QTBColorSettings::ColorMode(settings->value("OutOfRangeColorMode").toInt()));
 
 
-        if(mode == cmCurve || mode == cmFull) {
+        if(mode == cmFull) {
             settings->beginGroup("Plottable");
 
             setScatterShape(QCPScatterStyle::ScatterShape(settings->value("ScatterShape").toInt()));
-            setScatterSize(settings->value("ScatterSize").toInt());
+            setScatterSize(settings->value("ScatterShape").toInt());
 
             settings->beginGroup("Graph");
-            mGraphBrush = settings->value("BrushEnabled").toBool();
+            mGraphBrush = BrushStyle(settings->value("Brush").toInt());
             mGraphLineStyle = QCPGraph::LineStyle(settings->value("LineStyle").toInt());
             settings->endGroup();
 
             settings->beginGroup("Curve");
             mCurveLineStyle = QCPCurve::LineStyle(settings->value("LineStyle").toInt());
             mCurveTracerVisible = settings->value("TracerVisible").toBool();
+            settings->endGroup();
+
+            settings->endGroup();
+        } else if(mode == cmCurveY) {
+            settings->beginGroup("Plottable");
+
+            setScatterShape(QCPScatterStyle::ScatterShape(settings->value("ScatterShape").toInt()));
+            setScatterSize(settings->value("ScatterShape").toInt());
+
+            settings->beginGroup("Curve");
+            mCurveLineStyle = QCPCurve::LineStyle(settings->value("LineStyle").toInt());
+            mCurveTracerVisible = settings->value("TracerVisible").toBool();
+            settings->endGroup();
+
+            settings->endGroup();
+        } else if(mode == cmGraph) {
+            settings->beginGroup("Plottable");
+
+            setScatterShape(QCPScatterStyle::ScatterShape(settings->value("ScatterShape").toInt()));
+            setScatterSize(settings->value("ScatterShape").toInt());
+
+            settings->beginGroup("Graph");
+            mGraphBrush = BrushStyle(settings->value("Brush").toInt());
+            mGraphLineStyle = QCPGraph::LineStyle(settings->value("LineStyle").toInt());
             settings->endGroup();
 
             settings->endGroup();
@@ -272,7 +313,8 @@ void QTBParameterConfiguration::load(QSettings *settings, ConfigurationModule mo
                     cs.setMode(QTBColorSettings::ColorMode(settings->value("Mode").toInt()));
                     cs.setColor(QColor(settings->value("Color").toString()));
 
-                    mStatesSettings.addState(settings->value("Value").toLongLong(),
+                    mStatesSettings.addState(settings->value("Active").toBool(),
+                                             settings->value("Value").toLongLong(),
                                              settings->value("Text").toString(),
                                              cs);
                 }
@@ -464,6 +506,32 @@ QTBBitfieldsMapping &QTBParameterConfiguration::bitfieldsSettingsRef()
     return mBitfieldsSettings;
 }
 
+QTBParameterConfiguration::ItemColor QTBParameterConfiguration::itemColorMode() const
+{
+    return mItemColorMode;
+}
+
+void QTBParameterConfiguration::setItemColorMode(const ItemColor &itemColorMode)
+{
+    if(itemColorMode != mItemColorMode) {
+        mItemColorMode = itemColorMode;
+        mModified = true;
+    }
+}
+
+QColor QTBParameterConfiguration::itemStaticColor() const
+{
+    return mItemStaticColor;
+}
+
+void QTBParameterConfiguration::setItemStaticColor(const QColor &itemStaticColor)
+{
+    if(itemStaticColor != mItemStaticColor) {
+        mItemStaticColor = itemStaticColor;
+        mModified = true;
+    }
+}
+
 bool QTBParameterConfiguration::curveTracerVisible() const
 {
     return mCurveTracerVisible;
@@ -510,12 +578,12 @@ void QTBParameterConfiguration::setItemsThresholdsVisible(bool itemsThresholdsVi
     }
 }
 
-bool QTBParameterConfiguration::graphBrush() const
+QTBParameterConfiguration::BrushStyle QTBParameterConfiguration::graphBrush() const
 {
     return mGraphBrush;
 }
 
-void QTBParameterConfiguration::setGraphBrush(bool graphBrush)
+void QTBParameterConfiguration::setGraphBrush(BrushStyle graphBrush)
 {
     if(graphBrush != mGraphBrush) {
         mGraphBrush = graphBrush;
@@ -531,8 +599,16 @@ QCPGraph::LineStyle QTBParameterConfiguration::graphLineStyle() const
 void QTBParameterConfiguration::setGraphLineStyle(const QCPGraph::LineStyle &graphLineStyle)
 {
     if(graphLineStyle != mGraphLineStyle) {
-        mGraphLineStyle = graphLineStyle;
+        if(graphLineStyle == QCPGraph::lsStepLeft)
+            mGraphLineStyle = QCPGraph::lsImpulse;
+        else
+            mGraphLineStyle = graphLineStyle;
         mModified = true;
+
+        if(mGraphLineStyle == QCPGraph::lsNone)
+            setCurveLineStyle(QCPCurve::lsNone);
+        else
+            setCurveLineStyle(QCPCurve::lsLine);
     }
 }
 

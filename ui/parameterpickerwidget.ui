@@ -22,6 +22,17 @@
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+     <attribute name="headerVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string notr="true">1</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>
@@ -29,7 +40,7 @@
  <customwidgets>
   <customwidget>
    <class>ParametersListWidget</class>
-   <extends>QListWidget</extends>
+   <extends>QTreeWidget</extends>
    <header>ui/util/parameterslistwidget.h</header>
   </customwidget>
  </customwidgets>

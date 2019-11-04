@@ -22,7 +22,7 @@ public slots:
     void on_addButton_clicked();
     void on_reloadButton_clicked();
     void updateList();
-    void itemDoubleClicked(int row, int col);
+    void itemDoubleClicked(QTreeWidgetItem *item, int column);
     void editProperties(QString label, QString descr);
 
 private:

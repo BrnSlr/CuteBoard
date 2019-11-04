@@ -13,8 +13,10 @@ class ElementPickerWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ElementPickerWidget(QWidget *parent = nullptr);
+    explicit ElementPickerWidget( QWidget *parent = nullptr, QTBDashboardElement::ElementType type = QTBDashboardElement::etUnknown);
     ~ElementPickerWidget();
+
+    QString selectedElement();
 
 private:
     Ui::ElementPickerWidget *ui;

@@ -4,10 +4,12 @@
 #include "dashboard/layouts/layout_reactive.h"
 #include "project/project.h"
 #include "dashboard/elements_base/adjust_text_element.h"
+#include "dashboard/elements/alarm_panel.h"
 #include "dashboard/dashboard_element.h"
+#include "ui/elementpickerwidget.h"
 
 QTBoard::QTBoard(QWidget *parent) : QCustomPlot (parent),
-    mBoardColor(QColor(45,55,65)),
+    mBoardColor(QColor(50,65,75)),
     mBackColor(QColor(25,35,45)),
     mFrontColor(QColor(120,130,140))
 {
@@ -89,7 +91,7 @@ void QTBoard::droppedParameterSettings(QDropEvent *event)
     auto * element = qobject_cast<QTBDashboardElement *>(mDashboardLayout->elementAt(event->posF()));
     if(element) {
         const QMimeData *mimeData = event->mimeData();
-        QByteArray encoded = mimeData->data( QTBoard::parameterSettingsMimeType() );
+        QByteArray encoded = mimeData->data( QTBoard::parameterConfigMimeType() );
 
         QDataStream stream(&encoded, QIODevice::ReadOnly);
         QString label, descr;
@@ -103,20 +105,57 @@ void QTBoard::droppedParameterSettings(QDropEvent *event)
 }
 
 void QTBoard::droppedDataParameter(QDropEvent *event)
-{
-    auto * element = qobject_cast<QTBDashboardElement *>(mDashboardLayout->elementAt(event->posF()));
-    if(element) {
-        const QMimeData *mimeData = event->mimeData();
-        QByteArray encoded = mimeData->data( QTBoard::dataParameterMimeType() );
+{    
+    const QMimeData *mimeData = event->mimeData();
+    QByteArray encoded = mimeData->data( QTBoard::dataParameterMimeType() );
 
-        QDataStream stream(&encoded, QIODevice::ReadOnly);
-        QString label = QString::fromStdString(encoded.toStdString());
+    QDataStream stream(&encoded, QIODevice::ReadOnly);
+    QStringList listLabels;
+    stream >> listLabels;
+
+    QTBDashboardElement::ElementType type = QTBDashboardElement::etSingleParam;
+    if(listLabels.count() > 1)
+        type = QTBDashboardElement::etMultiParam;
+
+    auto * element = qobject_cast<QTBDashboardElement *>(mDashboardLayout->elementAt(event->posF()));
+    if(!element) {
+        QDialog dial;
+        QVBoxLayout *lay = new QVBoxLayout();
+        ElementPickerWidget *elemntPicker = new ElementPickerWidget(&dial,type);
+
+        auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+                                              | QDialogButtonBox::Cancel);
+
+        connect(buttonBox, &QDialogButtonBox::accepted, [&dial, elemntPicker](){
+            if(!elemntPicker->selectedElement().isEmpty())
+                dial.accept();
+        });
+        connect(buttonBox, SIGNAL(rejected()), &dial, SLOT(reject()));
+
+        lay->addWidget(elemntPicker);
+        lay->addWidget(buttonBox);
+        dial.setLayout(lay);
+        int res = dial.exec();
+
+        if( res == QDialog::Accepted) {
+            QString elementName = elemntPicker->selectedElement();
+            QTBLayoutReactiveElement* el = ElementFactory::Instance()->Create(elementName);
+            if(el) {
+                el->initializeElement(this);
+                mDashboardLayout->addElement(el, event->pos());
+                element = qobject_cast<QTBDashboardElement *>(el);
+            }
+        }
+    }
+    if(element) {
 
         if(mDataManager) {
-            QSharedPointer<QTBParameter> param = mDataManager->parameter(label);
-            if(param) {
-                element->droppedParameter(param);
-                mPageModified = true;
+            for(auto label:listLabels) {
+                QSharedPointer<QTBParameter> param = mDataManager->parameter(label);
+                if(param) {
+                    element->droppedParameter(param);
+                    mPageModified = true;
+                }
             }
         }
 
@@ -147,9 +186,8 @@ void QTBoard::update(QDateTime time)
 
     if(!mLoadingPage) {
         //        QElapsedTimer timer;
-        //            timer.start();
+        //        timer.start();
 
-        //        mDataManager->updateData();
         replot();
 
         //        qDebug() << "The update operation took (milliseconds)\t" << mProject->currentPageName() << "\t" << timer.elapsed();
@@ -166,6 +204,19 @@ QColor QTBoard::backColor() const
     return mBackColor;
 }
 
+QColor QTBoard::randomColor()
+{
+    double currentHueAngle = 137.50776 * mColorIndex;
+    int h, s, v;
+    //scale hue to between mHueMax and mHueMin
+    h = ( fmod( currentHueAngle, 360.0 ) );
+    s = 127;
+    v = 242;
+    mColorIndex++;
+    return QColor::fromHsv( (int)(h), s, v );
+}
+
+
 void QTBoard::loadHistoricalData()
 {
     for(int i=0; i< mDashboardLayout->elementCount();i++) {
@@ -180,13 +231,16 @@ void QTBoard::initDataManager()
     mDataManager = QSharedPointer<QTBDataManager>(new QTBDataManager());
     connect(mDataManager.data(), &QTBDataManager::parametersUpdated, this, &QTBoard::checkParameters);
     connect(mDataManager.data(), &QTBDataManager::dataUpdated, this, &QTBoard::update);
+    connect(mDataManager.data(), SIGNAL(updateDashboard()),
+            this, SLOT(replot()));
 }
 
 void QTBoard::dragEnterEvent(QDragEnterEvent *event)
 {
     if(mProject->currentPage()) {
         if (event->mimeData()->hasFormat(QTBoard::elementMimeType())
-                || event->mimeData()->hasFormat(QTBoard::parameterSettingsMimeType())
+                || event->mimeData()->hasFormat(QTBoard::parameterConfigMimeType())
+                || event->mimeData()->hasFormat(QTBoard::alarmConfigMimeType())
                 || event->mimeData()->hasFormat(QTBoard::dataParameterMimeType())) {
             event->accept();
         }
@@ -198,10 +252,12 @@ void QTBoard::dropEvent(QDropEvent *event)
     if(mProject->currentPage()) {
         if (event->mimeData()->hasFormat(QTBoard::elementMimeType())) {
             mDashboardLayout->droppedElement(event);
-        } else if (event->mimeData()->hasFormat(QTBoard::parameterSettingsMimeType())) {
+        } else if (event->mimeData()->hasFormat(QTBoard::parameterConfigMimeType())) {
             droppedParameterSettings(event);
         } else if (event->mimeData()->hasFormat(QTBoard::dataParameterMimeType())) {
             droppedDataParameter(event);
+        } else if (event->mimeData()->hasFormat(QTBoard::alarmConfigMimeType())) {
+            droppedAlarm(event);
         }
     }
 }
@@ -212,7 +268,8 @@ void QTBoard::dragMoveEvent(QDragMoveEvent *event)
         if (event->mimeData()->hasFormat(QTBoard::elementMimeType())) {
             event->accept();
             mDashboardLayout->draggedElement(event);
-        } else if (event->mimeData()->hasFormat(QTBoard::parameterSettingsMimeType())
+        } else if (event->mimeData()->hasFormat(QTBoard::parameterConfigMimeType())
+                   || event->mimeData()->hasFormat(QTBoard::alarmConfigMimeType())
                    || event->mimeData()->hasFormat(QTBoard::dataParameterMimeType())) {
             event->accept();
         }
@@ -226,6 +283,7 @@ void QTBoard::dragLeaveEvent(QDragLeaveEvent *event)
 
 void QTBoard::initStyle()
 {
+    mColorIndex = 1;
     int idLight = QFontDatabase::addApplicationFont(":Roboto-Light.ttf");
     QString familyLight = QFontDatabase::applicationFontFamilies(idLight).at(0);
     mFontLight = QFont(familyLight);
@@ -372,6 +430,8 @@ void QTBoard::loadPage()
         loadHistoricalData();
 
         mLoadingPage = false;
+
+        replot();
     }
 }
 
@@ -396,5 +456,20 @@ void QTBoard::checkParameters()
 QSharedPointer<QTBProject> QTBoard::project() const
 {
     return mProject;
+}
+
+void QTBoard::droppedAlarm(QDropEvent *event)
+{
+    auto * element = qobject_cast<QTBAlarmPanel *>(mDashboardLayout->elementAt(event->posF()));
+    if(element) {
+        const QMimeData *mimeData = event->mimeData();
+        QString label = QString::fromStdString(mimeData->data( QTBoard::alarmConfigMimeType() ).toStdString());
+        //        qDebug() << label;
+        element->addAlarm(mProject->alarmConfiguration(label));
+
+        mPageModified = true;
+
+        event->accept();
+    }
 }
 

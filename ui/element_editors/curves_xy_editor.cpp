@@ -1,5 +1,6 @@
 #include "curves_xy_editor.h"
 #include "ui_curves_xy_editor.h"
+#include "curves_xy_patron_editor.h"
 
 QTBCurvesXYEditor::QTBCurvesXYEditor(QTBPlotXY *display, QWidget *parent) :
     QDialog(parent),
@@ -89,6 +90,23 @@ void QTBCurvesXYEditor::accept()
     QDialog::accept();
 }
 
+void QTBCurvesXYEditor::updatePatronsTable()
+{
+    ui->patronsTableWidget->setRowCount(0);
+    QList<QSharedPointer<QTBCurvePatronConfiguration>> patrons = mDisplay->patrons();
+    for(auto patron : patrons) {
+        QTableWidgetItem *itemName = new QTableWidgetItem(patron->name());
+        QTableWidgetItem *itemColor = new QTableWidgetItem(patron->color().name());
+        itemColor->setForeground(patron->color());
+        QTableWidgetItem *itemStyle = new QTableWidgetItem(QMetaEnum::fromType<Qt::PenStyle>().valueToKey(patron->penStyle()));
+
+        ui->patronsTableWidget->insertRow(ui->patronsTableWidget->rowCount());
+        ui->patronsTableWidget->setItem(ui->patronsTableWidget->rowCount()-1,0,itemName);
+        ui->patronsTableWidget->setItem(ui->patronsTableWidget->rowCount()-1,1,itemColor);
+        ui->patronsTableWidget->setItem(ui->patronsTableWidget->rowCount()-1,2,itemStyle);
+    }
+}
+
 void QTBCurvesXYEditor::updateElement()
 {
     if(mDisplay) {
@@ -124,7 +142,7 @@ void QTBCurvesXYEditor::updateElement()
             if(dashParam) {
                 if(!mPropertiesWidgets.at(i)->isConnected()) {
                     mPropertiesWidgets.at(i)->updateParameterSettings(dashParam->exclusiveParameterConfiguration());
-                    dashParam->disconnectProperties();
+                    dashParam->disconnectSharedConfiguration();
                 }/* else {
                     dashParam->setConnected(true);
                 }*/
@@ -134,7 +152,7 @@ void QTBCurvesXYEditor::updateElement()
         if(mDisplay->xParameter()) {
             if(!mXPropertiesWidget->isConnected()) {
                 mXPropertiesWidget->updateParameterSettings(mDisplay->xParameter()->exclusiveParameterConfiguration());
-                mDisplay->xParameter()->disconnectProperties();
+                mDisplay->xParameter()->disconnectSharedConfiguration();
             } /*else {
                 mDisplay->xParameter()->setConnected(true);
             }*/
@@ -171,7 +189,7 @@ void QTBCurvesXYEditor::updateTabs()
                 mXPropertiesWidget->setEditionMode(PropertiesWidget::emElementStandAlone);
             mXPropertiesWidget->updateUi(mDisplay->xParameter()->exclusiveParameterConfiguration());
         }
-        mXPropertiesWidget->setPropertiesMode(QTBParameterConfiguration::cmCurve);
+        mXPropertiesWidget->setPropertiesMode(QTBParameterConfiguration::cmCurveX);
         mXPropertiesWidget->setVisible(true);
         ui->tabWidget->addTab(mXPropertiesWidget, QString("X : %1").arg(mDisplay->xParameter()->getDisplayedLabel()));
 
@@ -207,7 +225,7 @@ void QTBCurvesXYEditor::updateTabs()
                     propertiesWidget->setEditionMode(PropertiesWidget::emElementStandAlone);
                 propertiesWidget->updateUi(dashParam->exclusiveParameterConfiguration());
             }
-            propertiesWidget->setPropertiesMode(QTBParameterConfiguration::cmCurve);
+            propertiesWidget->setPropertiesMode(QTBParameterConfiguration::cmCurveY);
             propertiesWidget->setVisible(true);
             ui->tabWidget->addTab(propertiesWidget, QString("Y : %1").arg(dashParam->getDisplayedLabel()));
 
@@ -225,6 +243,8 @@ void QTBCurvesXYEditor::updateTabs()
             mPropertiesWidgets.append(propertiesWidget);
         }
     }
+
+   updatePatronsTable();
 }
 
 void QTBCurvesXYEditor::newParameter()
@@ -273,4 +293,74 @@ void QTBCurvesXYEditor::on_xrangeComboBox_currentIndexChanged(int index)
         ui->scaleWidget_2->setEnabled(true);
     else
         ui->scaleWidget_2->setEnabled(false);
+}
+
+void QTBCurvesXYEditor::on_addPatronButton_clicked()
+{    
+    QDialog dial;
+    QVBoxLayout dialLayout;
+    CurvesXYPatronEditor patronConfig;
+    dialLayout.addWidget(&patronConfig);
+
+    QDialogButtonBox buttonBox(QDialogButtonBox::Ok
+                               | QDialogButtonBox::Cancel);
+
+    connect(&buttonBox, &QDialogButtonBox::accepted, [&dial, &patronConfig](){
+        if(patronConfig.checkName())
+            dial.accept();
+        else
+            QMessageBox::warning(nullptr, "Patron Creation", "Error : empty name");
+    });
+
+    dialLayout.addWidget(&buttonBox);
+    dial.setLayout(&dialLayout);
+    int res = dial.exec();
+    if( res == QDialog::Accepted) {
+        auto patron = patronConfig.createPatron();
+        if(patron) {
+            mDisplay->addPatron(patron);
+
+            updatePatronsTable();
+        }
+    }
+}
+
+void QTBCurvesXYEditor::on_deletePatronButton_clicked()
+{
+    auto items = ui->patronsTableWidget->selectedItems();
+
+    if(items.count() > 0) {
+        int row = items.at(0)->row();
+        mDisplay->removePatron(row);
+        mDisplay->updateItems();
+
+        updatePatronsTable();
+    }
+}
+
+void QTBCurvesXYEditor::on_patronsTableWidget_itemDoubleClicked(QTableWidgetItem *item)
+{
+    QDialog dial;
+    QVBoxLayout dialLayout;
+    CurvesXYPatronEditor patronConfig;
+    dialLayout.addWidget(&patronConfig);
+
+    patronConfig.loadPatron(mDisplay->patrons().at(item->row()));
+
+    QDialogButtonBox buttonBox(QDialogButtonBox::Ok
+                               | QDialogButtonBox::Cancel);
+
+    connect(&buttonBox, &QDialogButtonBox::accepted, [&dial](){
+        dial.accept();
+    });
+
+    dialLayout.addWidget(&buttonBox);
+    dial.setLayout(&dialLayout);
+    int res = dial.exec();
+    if( res == QDialog::Accepted) {
+        patronConfig.updatePatron();
+        mDisplay->updateItems();
+
+        updatePatronsTable();
+    }
 }

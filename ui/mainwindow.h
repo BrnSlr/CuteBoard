@@ -24,6 +24,7 @@ public slots:
     void showHomePage();
     void showLivePage();
     void showDesignPage();
+    void showReplayPage();
     void showSettingsPage();
     void fullScreen(bool fullscreen);
     void projectSelected();
@@ -34,10 +35,11 @@ protected:
 private:
     Ui::MainWindow *ui;
 
-    bool mMaximized;
+    QRect mNormalGeometry;
     QAction *mHomeAction;
     QAction *mDesignAction;
     QAction *mLiveAction;
+    QAction *mReplayAction;
     QAction *mSettingsAction;
 };
 

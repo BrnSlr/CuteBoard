@@ -50,6 +50,7 @@ public:
     // non-virtual methods:
     void addElement(QCPLayoutElement *element, int col, int row, int width = -1, int height = -1);
     void addElement(QCPLayoutElement *element, QRect rect);
+    void addElement(QCPLayoutElement *element, QPoint pos);
     void updateElementMap();
 
     // getters:

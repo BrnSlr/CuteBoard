@@ -46,7 +46,7 @@ DashboardToolbar::DashboardToolbar(QWidget *parent) :
 
     connect(ui->comboBox, SIGNAL(currentIndexChanged(const QString)), this, SIGNAL(pageIndexChanged(const QString)));
 
-    ui->comboBox->setCurrentIndex(-1);
+    ui->comboBox->setCurrentIndex(-1);    
 }
 
 DashboardToolbar::~DashboardToolbar()
@@ -81,6 +81,15 @@ void DashboardToolbar::loadFirstPage()
     if(ui->comboBox->currentIndex() >= 0)
         return;
     ui->comboBox->setCurrentIndex(0);
+}
+
+void DashboardToolbar::setMode(DashboardToolbar::DashboardMode mode)
+{
+    if(mode == dmLive) {
+        ui->stackedWidget->setCurrentWidget(ui->pageLive);
+    } else {
+        ui->stackedWidget->setCurrentWidget(ui->pageReplay);
+    }
 }
 
 void DashboardToolbar::setEdition(bool edition)

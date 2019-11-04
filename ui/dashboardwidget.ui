@@ -37,6 +37,12 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
+     <property name="handleWidth">
+      <number>5</number>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
+     </property>
      <widget class="QWidget" name="editionWidget" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <property name="leftMargin">
@@ -55,6 +61,9 @@
         <widget class="QSplitter" name="vsplitter">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
+         </property>
+         <property name="childrenCollapsible">
+          <bool>false</bool>
          </property>
          <widget class="QGroupBox" name="groupBox_3">
           <property name="title">
@@ -107,6 +116,12 @@
           </layout>
          </widget>
          <widget class="QTabWidget" name="tabWidget">
+          <property name="minimumSize">
+           <size>
+            <width>350</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="tabPosition">
            <enum>QTabWidget::North</enum>
           </property>
@@ -146,7 +161,7 @@
           </widget>
           <widget class="QWidget" name="tab_2">
            <attribute name="title">
-            <string>Param Configurations</string>
+            <string>Parameters Config</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <property name="leftMargin">
@@ -163,6 +178,28 @@
             </property>
             <item>
              <widget class="PropertiesPickerWidget" name="propertiesPicker" native="true"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_3">
+           <attribute name="title">
+            <string>Alarms Config</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_8">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="AlarmsPickerWidget" name="alarmsPicker" native="true"/>
             </item>
            </layout>
           </widget>
@@ -230,6 +267,12 @@
    <class>DashboardToolbar</class>
    <extends>QWidget</extends>
    <header location="global">ui/dashboard_toolbar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AlarmsPickerWidget</class>
+   <extends>QWidget</extends>
+   <header>ui/alarmspickerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

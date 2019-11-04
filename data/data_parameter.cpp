@@ -44,6 +44,16 @@ void QTBParameter::setUnit(const QString &unit)
     mUnit = unit;
 }
 
+QString QTBParameter::sourceName() const
+{
+    return mSourceName;
+}
+
+void QTBParameter::setSourceName(const QString &sourceName)
+{
+    mSourceName = sourceName;
+}
+
 //void QTBParameter::setData(const QSharedPointer<QTBData> &data)
 //{
 //    mData = data;

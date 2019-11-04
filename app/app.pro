@@ -8,8 +8,6 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-DEFINES += QCUSTOMPLOT_USE_OPENGL
-
 TARGET = CuteBoard
 TEMPLATE = app
 
@@ -18,6 +16,8 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+DEFINES += QCUSTOMPLOT_USE_OPENGL
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -35,10 +35,13 @@ CONFIG(release, debug|release) {
     DESTDIR = $$PROJECT_ROOT_DIRECTORY/build/release
 }
 
-OBJECTS_DIR = $$PROJECT_ROOT_DIRECTORY/build/.obj
-MOC_DIR = $$PROJECT_ROOT_DIRECTORY/build/.moc
-RCC_DIR = $$PROJECT_ROOT_DIRECTORY/build/.qrc
-UI_DIR = $$PROJECT_ROOT_DIRECTORY/build/.ui
+OBJECTS_DIR = $$DESTDIR/.obj
+MOC_DIR = $$DESTDIR/.moc
+RCC_DIR = $$DESTDIR/.qrc
+UI_DIR = $$DESTDIR/.ui
+
+PRECOMPILED_HEADER = precompiled_header.h
+CONFIG += precompile_header
 
 RESOURCES += \
         ../resources/qdarkstyle/style.qrc \
@@ -50,9 +53,11 @@ RC_FILE += \
     ../resources/logo/cuteboard.rc
 
 FORMS += \
+    ../ui/alarm_configuration_widget.ui \
     ../ui/dashboard_toolbar.ui \
     ../ui/element_editors/curves_time_editor.ui \
     ../ui/element_editors/curves_xy_editor.ui \
+    ../ui/element_editors/curves_xy_patron_editor.ui \
     ../ui/element_editors/state_display_editor.ui \
     ../ui/element_editors/value_bitfields_editor.ui \
     ../ui/element_editors/value_display_editor.ui \
@@ -69,8 +74,10 @@ FORMS += \
     ../ui/propertieseditordialog.ui \
     ../ui/propertiespickerwidget.ui \
     ../ui/propertieswidget.ui \
+    ../ui/settingswidget.ui \
     ../ui/settings_dialog.ui \
-    ../ui/statewidget.ui
+    ../ui/statewidget.ui \
+    ../ui/alarmspickerwidget.ui
 
 HEADERS += \
     ../3rdparty/csv.h \
@@ -86,9 +93,11 @@ HEADERS += \
     ../dashboard/elements_base/adjust_text_element.h \
     ../dashboard/elements_base/axisrect.h \
     ../dashboard/elements_base/circularaxis.h \
+    ../dashboard/elements/alarm_panel.h \
     ../dashboard/dashboard_element.h \
     ../dashboard/elements_base/elementhighlightedrect.h \
     ../dashboard/elements_base/elementresizehandle.h \
+    ../dashboard/elements_base/graph.h \
     ../dashboard/elements_base/labelpainter.h \
     ../dashboard/layouts/layout_list.h \
     ../dashboard/layouts/layout_reactive_element.h \
@@ -99,17 +108,21 @@ HEADERS += \
     ../dashboard/layouts/layout_reactive.h \
     ../dashboard/dashboard_parameter.h \
     ../data/data_buffer.h \
-    ../data/data_common.h \
+    ../project/alarm_configuration.h \
     ../project/bitfieldsmapping.h \
     ../project/colorsettings.h \
+    ../project/curve_patron_configuration.h \
     ../project/page.h \
     ../project/parameter_configuration.h \
     ../project/project.h \
     ../project/statesmapping.h \
+    ../project/string_util.h \
     ../project/thresholdsmapping.h \
+    ../ui/alarm_configuration_widget.h \
     ../ui/dashboard_toolbar.h \
     ../ui/element_editors/curves_time_editor.h \
     ../ui/element_editors/curves_xy_editor.h \
+    ../ui/element_editors/curves_xy_patron_editor.h \
     ../ui/element_editors/state_display_editor.h \
     ../ui/element_editors/value_bitfields_editor.h \
     ../ui/element_editors/value_display_editor.h \
@@ -120,6 +133,7 @@ HEADERS += \
     ../ui/util/colorlineedit.h \
     ../ui/util/elementlistwidget.h \
     ../ui/util/parameterslistwidget.h \
+    ../ui/util/alarmslistwidget.h \
     ../ui/dashboardwidget.h \
     ../ui/elementpickerwidget.h \
     ../ui/homewidget.h \
@@ -131,6 +145,7 @@ HEADERS += \
     ../ui/propertieseditordialog.h \
     ../ui/propertiespickerwidget.h \
     ../ui/propertieswidget.h \
+    ../ui/settingswidget.h \
     ../ui/statewidget.h \
     ../data/data_source_interface.h \
     ../data/data_manager.h \
@@ -138,7 +153,9 @@ HEADERS += \
     ../data/data_serie.h \
     ../data/data_parameter.h \
     ../data/data_value.h \
-    ../ui/util/propertiestablewidget.h
+    ../data/data_source.h \
+    ../ui/util/propertiestablewidget.h \
+    ../ui/alarmspickerwidget.h
 
 SOURCES += \
     ../3rdparty/qcustomplot.cpp \
@@ -146,6 +163,7 @@ SOURCES += \
     ../dashboard/elements/plot_time.cpp \
     ../dashboard/elements/plot_xy.cpp \
     ../dashboard/elements/state_display.cpp \
+    ../dashboard/elements/alarm_panel.cpp \
     ../dashboard/elements/value_bitfields.cpp \
     ../dashboard/elements/value_display.cpp \
     ../dashboard/elements/value_gauge_horizontal.cpp \
@@ -157,6 +175,7 @@ SOURCES += \
     ../dashboard/dashboard_element.cpp \
     ../dashboard/elements_base/elementhighlightedrect.cpp \
     ../dashboard/elements_base/elementresizehandle.cpp \
+    ../dashboard/elements_base/graph.cpp \
     ../dashboard/elements_base/labelpainter.cpp \
     ../dashboard/layouts/layout_list.cpp \
     ../dashboard/layouts/layout_reactive_element.cpp \
@@ -167,16 +186,21 @@ SOURCES += \
     ../dashboard/layouts/layout_reactive.cpp \
     ../data/data_buffer.cpp \
     ../data/data_parameter.cpp \
+    ../project/alarm_configuration.cpp \
     ../project/bitfieldsmapping.cpp \
     ../project/colorsettings.cpp \
+    ../project/curve_patron_configuration.cpp \
     ../project/page.cpp \
     ../project/parameter_configuration.cpp \
     ../project/project.cpp \
     ../project/statesmapping.cpp \
+    ../project/string_util.cpp \
     ../project/thresholdsmapping.cpp \
+    ../ui/alarm_configuration_widget.cpp \
     ../ui/dashboard_toolbar.cpp \
     ../ui/element_editors/curves_time_editor.cpp \
     ../ui/element_editors/curves_xy_editor.cpp \
+    ../ui/element_editors/curves_xy_patron_editor.cpp \
     ../ui/element_editors/state_display_editor.cpp \
     ../ui/element_editors/value_bitfields_editor.cpp \
     ../ui/element_editors/value_display_editor.cpp \
@@ -187,6 +211,7 @@ SOURCES += \
     ../ui/util/colorlineedit.cpp \
     ../ui/util/elementlistwidget.cpp \
     ../ui/util/parameterslistwidget.cpp \
+    ../ui/util/alarmslistwidget.cpp \
     ../ui/dashboardwidget.cpp \
     ../ui/elementpickerwidget.cpp \
     ../ui/homewidget.cpp \
@@ -198,8 +223,10 @@ SOURCES += \
     ../ui/propertieseditordialog.cpp \
     ../ui/propertiespickerwidget.cpp \
     ../ui/propertieswidget.cpp \
+    ../ui/settingswidget.cpp \
     ../ui/statewidget.cpp \
     ../data/data_manager.cpp \
-    ../ui/util/propertiestablewidget.cpp
+    ../ui/util/propertiestablewidget.cpp \
+    ../ui/alarmspickerwidget.cpp
 
 INCLUDEPATH += ../

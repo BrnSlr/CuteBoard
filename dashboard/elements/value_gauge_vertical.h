@@ -29,8 +29,6 @@ public:
     virtual void loadSettings(QSettings *settings)Q_DECL_OVERRIDE;
     virtual void saveSettings(QSettings *settings)Q_DECL_OVERRIDE;
 
-    virtual void addDashboardParameter(QSharedPointer<QTBDashboardParameter> dashParameter) Q_DECL_OVERRIDE;
-
     virtual void buildLayout() Q_DECL_OVERRIDE;
     virtual void processNewSamples() Q_DECL_OVERRIDE;
     virtual void updateSizeConstraints() Q_DECL_OVERRIDE;
@@ -65,6 +63,6 @@ protected:
     bool mTankGauge;
 };
 
-static ElementRegister<QTBValueGaugeVertical> vgaugeRegister(QString(VGAUGE_NAME), ":/elements/icons8_vgauge_50px.png");
+static ElementRegister<QTBValueGaugeVertical> vgaugeRegister(QString(VGAUGE_NAME),QTBDashboardElement::etSingleParam, ":/elements/icons8_vgauge_50px.png");
 
 #endif // VERTICALGAUGE_H

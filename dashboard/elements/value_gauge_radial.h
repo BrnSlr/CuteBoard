@@ -68,6 +68,6 @@ protected:
     void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
 };
 
-static ElementRegister<QTBValueGaugeRadial> cgaugeRegister(QString(CGAUGE_NAME), ":/elements/icons8_speed_50px.png");
+static ElementRegister<QTBValueGaugeRadial> cgaugeRegister(QString(CGAUGE_NAME), QTBDashboardElement::etSingleParam,":/elements/icons8_speed_50px.png");
 
 #endif // QDBCIRCULARGAUGE_H

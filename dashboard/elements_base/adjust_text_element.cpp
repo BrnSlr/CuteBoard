@@ -61,7 +61,6 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
     if (phase == upLayout) {
 
         if(mNeedUpdate || (mPreviousText != mText) || (mPreviousSize != mRect.size())) {
-
             mPreviousSize = mRect.size();
             mPreviousText = mText;
             mTextDisplayed = mText;
@@ -78,14 +77,15 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
                         font.setPointSize(pointSize);
                         QFontMetrics fontMetrics(font);
                         QRect boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
-                        if (boundingRect.height() <= mRect.height() &&
-                                boundingRect.width() <= mRect.width()) {
+                        if (boundingRect.height() <= int(mRect.height()) &&
+                                boundingRect.width() <= int(mRect.width())) {
                             mFont.setPointSize(pointSize);
                             break;
                         }
                         pointSize -= 1;
                         if (pointSize < mMinPointSize) {
                             setVisible(false);
+                            setMinimumSize(QSize(0,0));
                             break;
                         }
                     }
@@ -105,6 +105,7 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
 
                         if (pointSize <= 0) {
                             setVisible(false);
+                            setMinimumSize(QSize(0,0));
                             break;
                         }
                     }
@@ -113,7 +114,7 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
                         QFontMetrics fontMetrics(mFont);
                         QRect boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
                         if (boundingRect.width() > mRect.width()) {
-                             mTextDisplayed = fontMetrics.elidedText(mText, Qt::ElideMiddle, int(mRect.width()));
+                            mTextDisplayed = fontMetrics.elidedText(mText, Qt::ElideMiddle, int(mRect.width()));
                         }
                     }
 
@@ -133,6 +134,7 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
 
                         if (pointSize < mMinPointSize) {
                             setVisible(false);
+                            setMinimumSize(QSize(0,0));
                             break;
                         }
                     }
@@ -141,7 +143,7 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
                         QFontMetrics fontMetrics(mFont);
                         QRect boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
                         if (boundingRect.width() > mRect.width()) {
-                             mTextDisplayed = fontMetrics.elidedText(mText, Qt::ElideMiddle, int(mRect.width()));
+                            mTextDisplayed = fontMetrics.elidedText(mText, Qt::ElideMiddle, int(mRect.width()));
                         }
                     }
                     break;
@@ -156,7 +158,6 @@ QSizeF QTBAdjustTextElement::minimumOuterSizeHint() const
 {
     if(visible()) {
         QFont font = mFont;
-        font.setPointSize(mMinPointSize);
         QFontMetrics metrics(font);
         QSizeF result(metrics.boundingRect(0, 0, 0, 0, mTextFlags, mText).size());
         result.rwidth() += mMargins.left()+mMargins.right();
@@ -180,6 +181,11 @@ bool QTBAdjustTextElement::needUpdate() const
 void QTBAdjustTextElement::needUpdate(bool needUpdate)
 {
     mNeedUpdate = needUpdate;
+}
+
+void QTBAdjustTextElement::setBoldText(bool bold)
+{
+    mFont.setBold(bold);
 }
 
 QTBAdjustTextElement::AdjustStrategy QTBAdjustTextElement::adjustStrategy() const

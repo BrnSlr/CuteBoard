@@ -23,6 +23,8 @@ public:
     bool transparentBackground() const;
     void setTransparentBackground(bool transparentBackground);
 
+    void setBrush(const QBrush &brush);
+
 protected:
     void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
     void drawBackground(QCPPainter *painter);
@@ -30,6 +32,7 @@ protected:
 protected:
     bool mTransparentBackground;
     QColor mBackgroundColor;
+    QBrush mBrush;
 };
 
 #endif // LAYOUTELEMENT_H

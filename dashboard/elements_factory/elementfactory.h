@@ -30,6 +30,7 @@ public:
 
     }
     void RegisterElement(QString name,
+                         QTBDashboardElement::ElementType type,
                          std::function<QTBDashboardElement*(void)> classFactoryFunction,
                          QString iconPath = QString()) {
         // register the class factory function
@@ -39,11 +40,13 @@ public:
             elementsName.append(name);
 
         elementIcons.insert(name, iconPath);
+        elementTypes.insert(name, type);
     }
 
     map<QString, function<QTBDashboardElement*(void)>> elementRegistry;
-
     QMap<QString, QString> elementIcons;
+    QMap<QString, QTBDashboardElement::ElementType> elementTypes;
+    QStringList elementsName;
 
     QString elementIconPath(QString elementName) {
         if(elementIcons.contains(elementName))
@@ -52,15 +55,23 @@ public:
             return QString();
         }
     }
-    QStringList elementsName;
+
+    QTBDashboardElement::ElementType elementType(QString elementName) {
+        if(elementTypes.contains(elementName))
+            return elementTypes.value(elementName);
+        else {
+            return QTBDashboardElement::etOther;
+        }
+    }
     QStringList getElementsName() const { return elementsName; }
 };
 
 template<class T> class ElementRegister {
 public:
-    ElementRegister(QString elementName, QString elementIconPath = QString()) {
+    ElementRegister(QString elementName, QTBDashboardElement::ElementType type, QString elementIconPath = QString()) {
         // register the class factory function
         ElementFactory::Instance()->RegisterElement(elementName,
+                                                    type,
                                                     [](void) -> QTBDashboardElement * { return new T();},
                                                     elementIconPath);
     }

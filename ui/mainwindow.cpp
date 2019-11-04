@@ -28,6 +28,16 @@ MainWindow::MainWindow(QWidget *parent) :
     mLiveAction->setEnabled(false);
     connect(mLiveAction, &QAction::triggered, this, &MainWindow::showLivePage);
 
+    QPixmap playback_enabled_icon( ":/icons8_past_32px.png" );
+    QPixmap playback_disabled_icon( ":/icons8_past_filled_32px.png" );
+    QIcon playback_icon( playback_enabled_icon );
+    playback_icon.addPixmap( playback_disabled_icon, QIcon::Disabled );
+    mReplayAction = ui->toolBar->addAction(playback_icon, "Playback");
+    mReplayAction->setCheckable(true);
+    mReplayAction->setEnabled(false);
+    connect(mReplayAction, &QAction::triggered, this, &MainWindow::showReplayPage);
+
+
     QPixmap design_enabled_icon( ":/icons8_design_enabled_32px.png" );
     QPixmap design_disabled_icon( ":/icons8_design_disabled_32px.png" );
     QIcon design_icon( design_enabled_icon );
@@ -48,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QActionGroup *actiongrp = new QActionGroup(this);
     actiongrp->addAction(mHomeAction);
     actiongrp->addAction(mLiveAction);
+    actiongrp->addAction(mReplayAction);
     actiongrp->addAction(mDesignAction);
 
     mHomeAction->setChecked(true);
@@ -72,14 +83,24 @@ void MainWindow::showLivePage()
     ui->dashboardWidget->board()->checkModification();
 
     mLiveAction->setChecked(true);
+    ui->dashboardWidget->setMode(DashboardToolbar::dmLive);
     ui->dashboardWidget->setEdition(false);
     ui->stackedWidget->setCurrentWidget(ui->dashboardWidget);
 }
 
 void MainWindow::showDesignPage()
 {
+    ui->dashboardWidget->setMode(DashboardToolbar::dmLive);
     mDesignAction->setChecked(true);
     ui->dashboardWidget->setEdition(true);
+    ui->stackedWidget->setCurrentWidget(ui->dashboardWidget);
+}
+
+void MainWindow::showReplayPage()
+{
+    mReplayAction->setChecked(true);
+    ui->dashboardWidget->setEdition(false);
+    ui->dashboardWidget->setMode(DashboardToolbar::dmReplay);
     ui->stackedWidget->setCurrentWidget(ui->dashboardWidget);
 }
 
@@ -91,20 +112,13 @@ void MainWindow::showSettingsPage()
 
 void MainWindow::fullScreen(bool fullscreen)
 {
+    setWindowState(windowState() ^ Qt::WindowFullScreen);
     if(fullscreen) {
-        mMaximized = isMaximized();
-        setVisible(false);
-        showFullScreen();
+        mNormalGeometry = geometry();
         ui->toolBar->hide();
-        setVisible(true);
     } else {
-        setVisible(false);
-        if (mMaximized)
-            showMaximized();
-        else
-            showNormal();
+        setGeometry(mNormalGeometry);
         ui->toolBar->show();
-        setVisible(true);
     }
 }
 
@@ -112,6 +126,7 @@ void MainWindow::projectSelected()
 {
     mLiveAction->setEnabled(true);
     mDesignAction->setEnabled(true);
+//    mReplayAction->setEnabled(true);
 }
 
 void MainWindow::init()
@@ -119,14 +134,4 @@ void MainWindow::init()
     connect(ui->dashboardWidget->project().data(), &QTBProject::loaded, this, &MainWindow::projectSelected);
     ui->homeWidget->setProject(ui->dashboardWidget->project());
     ui->homeWidget->loadWorkingDirectory();
-}
-
-bool MainWindow::maximized() const
-{
-    return mMaximized;
-}
-
-void MainWindow::setMaximized(bool maximized)
-{
-    mMaximized = maximized;
 }

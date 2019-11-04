@@ -28,8 +28,6 @@ public:
 
     virtual void loadSettings(QSettings *settings) Q_DECL_OVERRIDE;
     virtual void saveSettings(QSettings *settings) Q_DECL_OVERRIDE;
-    virtual void saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
-    virtual void loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
 
     virtual void processNewSamples() Q_DECL_OVERRIDE;
     virtual void updateElement() Q_DECL_OVERRIDE;

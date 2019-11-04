@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include "project/page.h"
+#include "project/alarm_configuration.h"
 #include "dashboard/dashboard_parameter.h"
 
 #define PRO_SETTINGS_KEY_NAME "Name"
@@ -21,7 +22,7 @@ public:
     ~QTBProject();
 
     bool generate(const QString& workingDirectory, const QString& projectName);
-    bool load(const QString& workingDirectory, const QString& projectName);
+    bool load(const QString& workingDirectory, const QString& projectName, bool fullLoad = true);
     void clear();
 
     void loadPages();
@@ -34,7 +35,12 @@ public:
     void loadParametersSettings();
     void addParameterSettings(QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings);
     QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings(const QString& name, const QString& description);
-    QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration> > > parametersSettings() const;
+    QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration> > > parametersSettings() const;    
+
+    void loadAlarmsConfigurations();
+    void addAlarmConfiguration(QExplicitlySharedDataPointer<QTBAlarmConfiguration> alarmConfig);
+    QMap<QString, QExplicitlySharedDataPointer<QTBAlarmConfiguration> > alarmsConfigurations() const;
+    QExplicitlySharedDataPointer<QTBAlarmConfiguration> alarmConfiguration(const QString& name);
 
     //getter
     QDateTime creationDate() const;
@@ -46,6 +52,7 @@ public:
     void setModificationDate(const QDateTime &modificationDate);
     void setName(const QString &name);
 
+    QString alarmsConfigPath() const;
     QString paramSettingsPath() const;
     QString currentPageName() const;
     QString pagesPath() const;
@@ -54,6 +61,8 @@ public:
 
     QString requestedPageName() const;
     void setRequestedPageName(const QString &requestedPageName);
+
+
 
 public slots:
     void requestPage(const QString& pageName);
@@ -77,11 +86,13 @@ private:
     QString mPagesPath;
     bool mPagesDirWrittable;
 
+    QString mAlarmsConfigPath;
     QString mParamSettingsPath;
     bool mParamSettingsDirWrittable;
 
     QMap<QString, QTBPage*> mPages;
     QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration>>> mParametersSettings;
+    QMap<QString, QExplicitlySharedDataPointer<QTBAlarmConfiguration>> mAlarmsConfigurations;
 
 };
 

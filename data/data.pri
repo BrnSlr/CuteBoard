@@ -9,7 +9,7 @@ HEADERS += \
     $$PWD/../3rdparty/csv.h \
     $$PWD/../3rdparty/qcustomplot.h \
     $$PWD/data_buffer.h \
-    $$PWD/data_common.h \
+    $$PWD/data_source.h \
     $$PWD/data_source_interface.h \
     $$PWD/data_manager.h \
     $$PWD/data_sample.h \

@@ -24,6 +24,7 @@ QTBPlotXY::QTBPlotXY(QTBoard *dashboard) :
     mXParameter(nullptr)
 {
     setParametersMaxCount(9);
+    setConfigurationMode(QTBParameterConfiguration::cmCurveX);
 }
 
 void QTBPlotXY::clearElement()
@@ -63,6 +64,10 @@ void QTBPlotXY::initializeElement(QTBoard *dashboard)
         mLayout->setParent(this);
 
         mAxisRect = new QTBAxisRect(dashboard);
+        connect(mAxisRect->axis(QCPAxis::atLeft), SIGNAL(rangeChanged(QCPRange)),
+                mAxisRect->axis(QCPAxis::atRight), SLOT(setRange(QCPRange)));
+        connect(mAxisRect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)),
+                mAxisRect->axis(QCPAxis::atTop), SLOT(setRange(QCPRange)));
         mYLegendLayout = new QTBLayoutGrid();
         mYLegendLayout->initializeParentPlot(dashboard);
         mYLegendLayout->setFillOrder(QCPLayoutGrid::foRowsFirst);
@@ -152,22 +157,32 @@ void QTBPlotXY::loadSettings(QSettings *settings)
         setXThresholdsVisible(settings->value("ThresholdsVisible").toBool());
     settings->endGroup();
 
+    mPatrons.clear();
+   int count = settings->beginReadArray("Patrons");
+    for(int i=0; i< count;i++) {
+        settings->setArrayIndex(i);
+        QSharedPointer<QTBCurvePatronConfiguration> patron(new QTBCurvePatronConfiguration());
+        patron->load(settings);
+        mPatrons.append(patron);
+    }
+    settings->endArray();
+
 }
 
-void QTBPlotXY::loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+void QTBPlotXY::loadConfigurations(QSettings *settings)
 {
     mXParameter = nullptr;
     if(settings->childGroups().contains("XParameter")) {
         settings->beginGroup("XParameter");
 
         mXParameter =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(mBoard));
-        mXParameter->loadParameterSettings(settings, mode);
+        mXParameter->loadParameterSettings(settings, mConfigurationMode);
 
         auto legend = new QTBValueDisplay(mBoard);
         legend->initializeElement(mBoard);
-        legend->addDashboardParameter(mXParameter);
+        legend->addParameter(mXParameter);
         legend->setTransparentBackground(true);
-        legend->setOrientation(QTBValueDisplay::doVertical);
+        legend->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
 
         mXLegendLayout->take(mXLegendEmptyElementRight);
         mXLegendLayout->simplify();
@@ -184,13 +199,13 @@ void QTBPlotXY::loadParametersSettings(QSettings *settings, QTBParameterConfigur
         settings->setArrayIndex(i);
         QSharedPointer<QTBDashboardParameter> dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(mBoard));
         mDashParameters.append(dashParam);
-        dashParam->loadParameterSettings(settings, mode);
+        dashParam->loadParameterSettings(settings, mConfigurationMode);
 
         auto legend = new QTBValueDisplay(mBoard);
         legend->initializeElement(mBoard);
-        legend->addDashboardParameter(dashParam);
+        legend->addParameter(dashParam);
         legend->setTransparentBackground(true);
-        legend->setOrientation(QTBValueDisplay::doVertical);
+        legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
 
         mYLegendLayout->take(mYLegendEmptyElementBottom);
         mYLegendLayout->simplify();
@@ -210,17 +225,14 @@ void QTBPlotXY::checkParameters()
 {
     QTBDashboardElement::checkParameters();
 
-    if(mXParameter) {
-        QSharedPointer<QTBParameter> param;
-        if(mBoard->dataManager())
+    QSharedPointer<QTBParameter> param;
+    if(mBoard->dataManager()) {
+        if(mXParameter) {
             param = mBoard->dataManager()->parameter(mXParameter->getLabel());
-
-        if(param){
-            mXParameter->setUnit(param->unit());
-            mXParameter->setParameterId(param->parameterId());
-        } else {
-            mXParameter->setUnit(QString());
-            mXParameter->setParameterId(0);
+            if(param){
+                mXParameter->setUnit(param->unit());
+                mXParameter->setParameterId(param->parameterId());
+            }
         }
     }
 }
@@ -255,26 +267,31 @@ void QTBPlotXY::saveSettings(QSettings *settings)
     settings->setValue("History", mXAxisHistory);
     settings->setValue("ThresholdsVisible", mXThresholdsVisible);
     settings->endGroup();
+
+    settings->beginWriteArray("Patrons");
+    for(int i=0; i< mPatrons.count();i++) {
+        settings->setArrayIndex(i);
+        mPatrons.at(i)->save(settings);
+    }
+    settings->endArray();
 }
 
-void QTBPlotXY::saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+void QTBPlotXY::saveConfigurations(QSettings *settings)
 {
-    Q_UNUSED(mode)
-
     settings->beginWriteArray("Parameters");
     int count = -1;
     for(int i= 0; i< mDashParameters.count();i++) {
         if(mDashParameters.at(i) != mXParameter) {
             count ++;
             settings->setArrayIndex(count);
-            mDashParameters.at(i)->saveParameterSettings(settings, mode);
+            mDashParameters.at(i)->saveParameterSettings(settings, mConfigurationMode);
         }
     }
     settings->endArray();
 
     if(mXParameter) {
         settings->beginGroup("XParameter");
-        mXParameter->saveParameterSettings(settings, QTBParameterConfiguration::cmCurve);
+        mXParameter->saveParameterSettings(settings, mConfigurationMode);
         settings->endGroup();
     }
 }
@@ -319,9 +336,9 @@ QSharedPointer<QTBDashboardParameter> QTBPlotXY::addYParameter(QExplicitlyShared
 
     auto legend = new QTBValueDisplay(mBoard);
     legend->initializeElement(mBoard);
-    legend->addDashboardParameter(dashParam);
+    legend->addParameter(dashParam);
     legend->setTransparentBackground(true);
-    legend->setOrientation(QTBValueDisplay::doVertical);
+    legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
 
     mYLegendLayout->take(mYLegendEmptyElementBottom);
     mYLegendLayout->simplify();
@@ -344,9 +361,9 @@ QSharedPointer<QTBDashboardParameter> QTBPlotXY::addYParameter(QString paramLabe
 
     auto legend = new QTBValueDisplay(mBoard);
     legend->initializeElement(mBoard);
-    legend->addDashboardParameter(dashParam);
+    legend->addParameter(dashParam);
     legend->setTransparentBackground(true);
-    legend->setOrientation(QTBValueDisplay::doVertical);
+    legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
 
     mYLegendLayout->take(mYLegendEmptyElementBottom);
     mYLegendLayout->simplify();
@@ -369,9 +386,9 @@ QSharedPointer<QTBDashboardParameter> QTBPlotXY::addYParameter(QSharedPointer<QT
 
     auto legend = new QTBValueDisplay(mBoard);
     legend->initializeElement(mBoard);
-    legend->addDashboardParameter(dashParam);
+    legend->addParameter(dashParam);
     legend->setTransparentBackground(true);
-    legend->setOrientation(QTBValueDisplay::doVertical);
+    legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
 
     mYLegendLayout->take(mYLegendEmptyElementBottom);
     mYLegendLayout->simplify();
@@ -404,9 +421,9 @@ QSharedPointer<QTBDashboardParameter> QTBPlotXY::addXParameter(QExplicitlyShared
 
     auto legend = new QTBValueDisplay(mBoard);
     legend->initializeElement(mBoard);
-    legend->addDashboardParameter(mXParameter);
+    legend->addParameter(mXParameter);
     legend->setTransparentBackground(true);
-    legend->setOrientation(QTBValueDisplay::doVertical);
+    legend->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
 
     mXLegendLayout->take(mXLegendEmptyElementRight);
     mXLegendLayout->simplify();
@@ -439,9 +456,9 @@ QSharedPointer<QTBDashboardParameter> QTBPlotXY::addXParameter(QString paramLabe
 
     auto legend = new QTBValueDisplay(mBoard);
     legend->initializeElement(mBoard);
-    legend->addDashboardParameter(mXParameter);
+    legend->addParameter(mXParameter);
     legend->setTransparentBackground(true);
-    legend->setOrientation(QTBValueDisplay::doVertical);
+    legend->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
 
     mXLegendLayout->take(mXLegendEmptyElementRight);
     mXLegendLayout->simplify();
@@ -474,9 +491,9 @@ QSharedPointer<QTBDashboardParameter> QTBPlotXY::addXParameter(const QSharedPoin
 
     auto legend = new QTBValueDisplay(mBoard);
     legend->initializeElement(mBoard);
-    legend->addDashboardParameter(mXParameter);
+    legend->addParameter(mXParameter);
     legend->setTransparentBackground(true);
-    legend->setOrientation(QTBValueDisplay::doVertical);
+    legend->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
 
     mXLegendLayout->take(mXLegendEmptyElementRight);
     mXLegendLayout->simplify();
@@ -599,20 +616,36 @@ void QTBPlotXY::updateAxes()
 {
     switch(mYAxisScale) {
     case asAuto:
-        if((parametersCount() > 0) &&
-                mXParameter) {
-            mAxisRect->axis(QCPAxis::atLeft)->rescale();
-            mAxisRect->axis(QCPAxis::atLeft)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atLeft)->range().center());
-            mYAxisMinCustom = mAxisRect->axis(QCPAxis::atLeft)->range().lower;
-            mYAxisMaxCustom = mAxisRect->axis(QCPAxis::atLeft)->range().upper;
+    {
+        bool canRescale = false;
+        for(int i=0; i< parametersCount(); i++) {
+            QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(i);
+            if(dashParam) {
+                if(dashParam->getParameterId() > 0) {
+                    canRescale = true;
+                    break;
+                }
+            }
         }
+        if(canRescale) {
+            if(mAxisRect->plottables().count() > 0) {
+                mAxisRect->axis(QCPAxis::atLeft)->rescale();
+                mAxisRect->axis(QCPAxis::atLeft)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atLeft)->range().center());
+                mYAxisMinCustom = mAxisRect->axis(QCPAxis::atLeft)->range().lower;
+                mYAxisMaxCustom = mAxisRect->axis(QCPAxis::atLeft)->range().upper;
+            }
+        }
+    }
         break;
     case asParam:
     {
         bool validRange = false;
+        bool canAutoRescale = false;
         for(int i=0; i< parametersCount(); i++) {
             QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(i);
             if(dashParam) {
+                if(dashParam->getParameterId() > 0)
+                    canAutoRescale = true;
                 if(i==0) {
                     if(dashParam->parameterConfiguration()->validRange()) {
                         validRange = true;
@@ -631,11 +664,13 @@ void QTBPlotXY::updateAxes()
             }
         }
 
-        if(!validRange) {
-            mAxisRect->axis(QCPAxis::atLeft)->rescale();
-            mAxisRect->axis(QCPAxis::atLeft)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atLeft)->range().center());
-            mYAxisMinCustom = mAxisRect->axis(QCPAxis::atLeft)->range().lower;
-            mYAxisMaxCustom = mAxisRect->axis(QCPAxis::atLeft)->range().upper;
+        if(!validRange && canAutoRescale) {
+            if(mAxisRect->plottables().count() > 0) {
+                mAxisRect->axis(QCPAxis::atLeft)->rescale();
+                mAxisRect->axis(QCPAxis::atLeft)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atLeft)->range().center());
+                mYAxisMinCustom = mAxisRect->axis(QCPAxis::atLeft)->range().lower;
+                mYAxisMaxCustom = mAxisRect->axis(QCPAxis::atLeft)->range().upper;
+            }
         } else {
             mAxisRect->axis(QCPAxis::atLeft)->setRange(QCPRange(mYAxisMinCustom, mYAxisMaxCustom));
         }
@@ -648,26 +683,25 @@ void QTBPlotXY::updateAxes()
 
     switch(mXAxisScale) {
     case asAuto:
-        if((parametersCount() > 0) &&
-                mXParameter) {
-            mAxisRect->axis(QCPAxis::atBottom)->rescale();
-            mAxisRect->axis(QCPAxis::atBottom)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atBottom)->range().center());
-            mXAxisMinCustom = mAxisRect->axis(QCPAxis::atBottom)->range().lower;
-            mXAxisMaxCustom = mAxisRect->axis(QCPAxis::atBottom)->range().upper;
+        if(mXParameter) {
+            if(mXParameter->getParameterId() > 0) {
+                mAxisRect->axis(QCPAxis::atBottom)->rescale();
+                mAxisRect->axis(QCPAxis::atBottom)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atBottom)->range().center());
+                mXAxisMinCustom = mAxisRect->axis(QCPAxis::atBottom)->range().lower;
+                mXAxisMaxCustom = mAxisRect->axis(QCPAxis::atBottom)->range().upper;
+            }
         }
         break;
     case asParam:
         if(mXParameter) {
             if(mXParameter->parameterConfiguration()->validRange()) {
                 mAxisRect->axis(QCPAxis::atBottom)->setRange(QCPRange(mXParameter->parameterConfiguration()->rangeMinimum(), mXParameter->parameterConfiguration()->rangeMaximum()));
-            } else {
+            } else if(mXParameter->getParameterId() > 0) {
                 mAxisRect->axis(QCPAxis::atBottom)->rescale();
                 mAxisRect->axis(QCPAxis::atBottom)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atBottom)->range().center());
             }
-        } else {
-            mAxisRect->axis(QCPAxis::atBottom)->rescale();
-            mAxisRect->axis(QCPAxis::atBottom)->scaleRange(1.05, mAxisRect->axis(QCPAxis::atBottom)->range().center());
         }
+
         mXAxisMinCustom = mAxisRect->axis(QCPAxis::atBottom)->range().lower;
         mXAxisMaxCustom = mAxisRect->axis(QCPAxis::atBottom)->range().upper;
         break;
@@ -691,7 +725,8 @@ void QTBPlotXY::updateItems()
         if(dashParam) {
             const QString layer(QStringLiteral("overlay"));
 
-            QPen linePen(dashParam->parameterConfiguration()->defaultColorSettingsRef().color());
+            QColor color = dashParam->parameterConfiguration()->defaultColorSettingsRef().color();
+            QPen linePen(color);
             linePen.setStyle(Qt::DotLine);
             linePen.setWidth(0);
 
@@ -740,8 +775,10 @@ void QTBPlotXY::updateItems()
                         l->point2->setCoords(1.0, lowIt.key());
                         l->setClipAxisRect(mAxisRect);
                         l->setClipToAxisRect(true);
-                        QPen pen = QPen(lowIt.value().color());
-                        pen.setStyle(Qt::DashDotLine);
+                        QColor color = lowIt.value().color();
+                        color.setAlpha(150);
+                        QPen pen = QPen(color);
+                        pen.setStyle(Qt::DashDotDotLine);
                         l->setPen(pen);
                     }
 
@@ -759,8 +796,11 @@ void QTBPlotXY::updateItems()
                         l->point2->setCoords(1.0, highIt.key());
                         l->setClipAxisRect(mAxisRect);
                         l->setClipToAxisRect(true);
-                        QPen pen = QPen(highIt.value().color());
-                        pen.setStyle(Qt::DashDotLine);
+
+                        QColor color = highIt.value().color();
+                        color.setAlpha(150);
+                        QPen pen = QPen(color);
+                        pen.setStyle(Qt::DashDotDotLine);
                         l->setPen(pen);
                     }
                 }
@@ -785,8 +825,11 @@ void QTBPlotXY::updateItems()
                     l->point2->setCoords(lowIt.key(), 1.0);
                     l->setClipAxisRect(mAxisRect);
                     l->setClipToAxisRect(true);
-                    QPen pen = QPen(lowIt.value().color());
-                    pen.setStyle(Qt::DashDotLine);
+                    QColor color = lowIt.value().color();
+                    color.setAlpha(150);
+                    QPen pen = QPen(color);
+                    pen.setStyle(Qt::DashDotDotLine);
+
                     l->setPen(pen);
                 }
 
@@ -804,11 +847,28 @@ void QTBPlotXY::updateItems()
                     l->point2->setCoords(lowIt.key(), 1.0);
                     l->setClipAxisRect(mAxisRect);
                     l->setClipToAxisRect(true);
-                    QPen pen = QPen(highIt.value().color());
-                    pen.setStyle(Qt::DashDotLine);
+                    QColor color = highIt.value().color();
+                    color.setAlpha(150);
+                    QPen pen = QPen(color);
+                    pen.setStyle(Qt::DashDotDotLine);
                     l->setPen(pen);
                 }
             }
+        }
+    }
+
+    for(auto plottable : mAxisRect->axis(QCPAxis::atRight)->plottables())
+        mBoard->removePlottable(plottable);
+
+    for(auto patron : mPatrons) {
+        QCPCurve *curve = new QCPCurve(mAxisRect->axis(QCPAxis::atTop), mAxisRect->axis(QCPAxis::atRight));
+        curve->setPen(patron->pen());
+
+        QList<double> x = patron->xValues();
+        QList<double> y = patron->yValues();
+        if(x.count() == y.count()) {
+            for(int i=0;i<x.count();i++)
+                curve->addData(i, x.at(i), y.at(i));
         }
     }
 }
@@ -944,6 +1004,18 @@ void QTBPlotXY::updateLayout()
     }
 }
 
+void QTBPlotXY::addPatron(QSharedPointer<QTBCurvePatronConfiguration> patron)
+{
+    mPatrons.append(patron);
+    updateItems();
+}
+
+void QTBPlotXY::removePatron(int index)
+{
+    if(index < mPatrons.count())
+        mPatrons.removeAt(index);
+}
+
 void QTBPlotXY::updateDashboardParameters(QTBDashboardParameter::UpdateMode mode)
 {
     QTBDashboardElement::updateDashboardParameters(mode);
@@ -988,6 +1060,11 @@ bool QTBPlotXY::xThresholdsVisible() const
 void QTBPlotXY::setXThresholdsVisible(bool xThresholdsVisible)
 {
     mXThresholdsVisible = xThresholdsVisible;
+}
+
+QList<QSharedPointer<QTBCurvePatronConfiguration> > QTBPlotXY::patrons() const
+{
+    return mPatrons;
 }
 
 bool QTBPlotXY::yThresholdsVisible() const

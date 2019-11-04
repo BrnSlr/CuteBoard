@@ -17,12 +17,10 @@ public:
     virtual void updateDashboardParameters(QTBDashboardParameter::UpdateMode mode = QTBDashboardParameter::umValue) Q_DECL_OVERRIDE;
     virtual void loadSettings(QSettings *settings) Q_DECL_OVERRIDE;
     virtual void saveSettings(QSettings *settings) Q_DECL_OVERRIDE;
-    virtual void saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
-    virtual void loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
 
     void processNewSamples() Q_DECL_OVERRIDE;
 };
 
-static ElementRegister<QTBStateDisplay> stateTextRegister(QString(STATETEXT_NAME), ":/elements/icons8_color_50px.png");
+static ElementRegister<QTBStateDisplay> stateTextRegister(QString(STATETEXT_NAME), QTBDashboardElement::etSingleParam,":/elements/icons8_color_50px.png");
 
 #endif // STATE_TEXT_H

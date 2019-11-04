@@ -10,8 +10,8 @@ QTBLayoutReactive::QTBLayoutReactive(QTBoard *dashboard,
     mColumnCount(nbCols),
     mRowHeight(1),
     mColumnWidth(1),
-    mRowSpacing(3),
-    mColumnSpacing(3),
+    mRowSpacing(4),
+    mColumnSpacing(4),
     mSingleElementRowCount(0),
     mSingleElementColumnCount(0),
     mLocked(false),
@@ -323,6 +323,14 @@ void QTBLayoutReactive::droppedElement(QDropEvent *event)
     mHighlightRect->setVisible(false);
     mParentPlot->layer(QLatin1String("overlay"))->replot();
 
+}
+
+void QTBLayoutReactive::addElement(QCPLayoutElement *element, QPoint pos)
+{
+    int indexCol = int(mColumnCount *  pos.x() / mOuterRect.width()) ;
+    int indexRow = int(mRowCount * pos.y() / mOuterRect.height()) ;
+
+    addElement(element, indexCol, indexRow);
 }
 
 void QTBLayoutReactive::addElement(QCPLayoutElement *element, int col, int row, int width, int height)
@@ -726,14 +734,15 @@ void QTBLayoutReactive::mouseRelease(QMouseEvent *event)
             animation->setStartValue(mHighlightRect->outerRect());
             animation->setEndValue(mElements.at(mDraggedElementIndex)->outerRect());
 
+
             connect(animation, &QPropertyAnimation::valueChanged, [=](){
                 mParentPlot->layer(QLatin1String("overlay"))->replot();
             });
 
             connect(animation, &QPropertyAnimation::finished, [=](){
+                mHighlightRect->setVisible(false);
                 mDragging = false;
                 mDraggedElementIndex = -1;
-                mHighlightRect->setVisible(false);
                 mParentPlot->layer(QLatin1String("overlay"))->replot();
             });
 

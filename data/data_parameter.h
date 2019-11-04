@@ -17,10 +17,14 @@ public:
     QString unit() const;
     void setUnit(const QString &unit);  
 
+    QString sourceName() const;
+    void setSourceName(const QString &sourceName);
+
 protected:
     quint32         mParameterId;
     QString         mLabel;
     QString         mUnit;
+    QString         mSourceName;
 
     void setParameterId(const quint32 &parameterId);
 

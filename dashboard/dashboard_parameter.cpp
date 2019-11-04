@@ -7,10 +7,7 @@
 QTBDashboardParameter::QTBDashboardParameter(QTBoard *board):
     mParameterId(0),
     mBoard(board),
-    mParameterConfigurationIsShared(false),
-    mSharedParameterConfiguration(new QTBParameterConfiguration ()),
-    mExclusiveParameterConfiguration(new QTBParameterConfiguration ()),
-    mParameterConfiguration(new QTBParameterConfiguration ())
+    mParameterConfigurationIsShared(false)
 {
 
 }
@@ -19,7 +16,6 @@ QTBDashboardParameter::QTBDashboardParameter(const QSharedPointer<QTBParameter>&
     mParameterId(0),
     mBoard(board),
     mParameterConfigurationIsShared(false),
-    mSharedParameterConfiguration(new QTBParameterConfiguration ()),
     mExclusiveParameterConfiguration(new QTBParameterConfiguration ()),
     mParameterConfiguration(new QTBParameterConfiguration ())
 {
@@ -29,7 +25,7 @@ QTBDashboardParameter::QTBDashboardParameter(const QSharedPointer<QTBParameter>&
         mUnit = dataParameter->unit();
         mExclusiveParameterConfiguration->setLabel(mLabel);
         mParameterConfiguration = mExclusiveParameterConfiguration;
-        mSharedParameterConfiguration.reset();
+        mParameterConfiguration->defaultColorSettingsRef().setColor(mBoard->randomColor());
     }
 }
 
@@ -53,7 +49,6 @@ QTBDashboardParameter::QTBDashboardParameter(const QString& parameterLabel, QTBo
     mParameterId(0),
     mBoard(board),
     mParameterConfigurationIsShared(false),
-    mSharedParameterConfiguration(new QTBParameterConfiguration ()),
     mExclusiveParameterConfiguration(new QTBParameterConfiguration ()),
     mParameterConfiguration(new QTBParameterConfiguration ())
 {
@@ -61,7 +56,7 @@ QTBDashboardParameter::QTBDashboardParameter(const QString& parameterLabel, QTBo
         mLabel = parameterLabel;
         mExclusiveParameterConfiguration->setLabel(mLabel);
         mParameterConfiguration = mExclusiveParameterConfiguration;
-        mSharedParameterConfiguration.reset();
+        mParameterConfiguration->defaultColorSettingsRef().setColor(mBoard->randomColor());
     }
 }
 
@@ -230,12 +225,12 @@ void QTBDashboardParameter::update(UpdateMode mode)
     }
 }
 
-bool QTBDashboardParameter::configurationChanged()
+bool QTBDashboardParameter::configurationHasChanged()
 {
     return mParameterConfiguration->modified();
 }
 
-void QTBDashboardParameter::propertiesChecked()
+void QTBDashboardParameter::modificationsApplied()
 {
     mParameterConfiguration->setModified(false);
 }
@@ -245,14 +240,14 @@ bool QTBDashboardParameter::connected() const
     return mParameterConfigurationIsShared;
 }
 
-void QTBDashboardParameter::disconnectProperties()
+void QTBDashboardParameter::disconnectSharedConfiguration()
 {
     mParameterConfigurationIsShared = false;
     mSharedParameterConfiguration.reset();
     mParameterConfiguration = mExclusiveParameterConfiguration;
 }
 
-void QTBDashboardParameter::saveParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+void QTBDashboardParameter::saveParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationMode mode)
 {
     settings->setValue("Connected", mParameterConfigurationIsShared);
     if(mParameterConfigurationIsShared) {
@@ -263,7 +258,7 @@ void QTBDashboardParameter::saveParameterSettings(QSettings *settings, QTBParame
     }
 }
 
-void QTBDashboardParameter::loadParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+void QTBDashboardParameter::loadParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationMode mode)
 {
     mParameterConfigurationIsShared = settings->value("Connected").toBool();
     if(mParameterConfigurationIsShared) {
@@ -280,6 +275,8 @@ void QTBDashboardParameter::loadParameterSettings(QSettings *settings, QTBParame
             mParameterConfiguration = mSharedParameterConfiguration;
         }
     } else {
+        if(!mExclusiveParameterConfiguration)
+            mExclusiveParameterConfiguration = QExplicitlySharedDataPointer<QTBParameterConfiguration>(new QTBParameterConfiguration());
         mExclusiveParameterConfiguration->load(settings, mode);
         mLabel = mExclusiveParameterConfiguration->label();
         mParameterConfigurationIsShared = false;

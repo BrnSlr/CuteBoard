@@ -31,10 +31,10 @@ CONFIG(release, debug|release) {
     DESTDIR = $$PROJECT_ROOT_DIRECTORY/build/release/DataSources/$$TARGET
 }
 
-OBJECTS_DIR = $$PROJECT_ROOT_DIRECTORY/build/.obj
-MOC_DIR = $$PROJECT_ROOT_DIRECTORY/build/.moc
-RCC_DIR = $$PROJECT_ROOT_DIRECTORY/build/.qrc
-UI_DIR = $$PROJECT_ROOT_DIRECTORY/build/.ui
+OBJECTS_DIR = $$DESTDIR/.obj
+MOC_DIR = $$DESTDIR/.moc
+RCC_DIR = $$DESTDIR/.qrc
+UI_DIR = $$DESTDIR/.ui
 
 include($$PROJECT_ROOT_DIRECTORY/data/data.pri)
 

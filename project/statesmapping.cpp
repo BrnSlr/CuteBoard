@@ -10,12 +10,17 @@ QTBStatesMapping::~QTBStatesMapping()
 {
     mStatesText.clear();
     mStatesColor.clear();
+    mStatesActive.clear();
 }
 
-void QTBStatesMapping::addState(qlonglong value,
+void QTBStatesMapping::addState(bool active,
+                                qlonglong value,
                                 const QString& text,
                                 const QTBColorSettings& colorSettings)
 {
+    mStatesActive.remove(value);
+    mStatesActive.insert(value, active);
+
     mStatesColor.remove(value);
     mStatesColor.insert(value, colorSettings);
 
@@ -26,8 +31,12 @@ void QTBStatesMapping::addState(qlonglong value,
 
 QString QTBStatesMapping::text(qlonglong value)
 {
-    if(mStatesText.contains(value))
-        return mStatesText.value(value);
+
+    if(mStatesActive.contains(value)) {
+        if(mStatesActive.value(value)) {
+            return mStatesText.value(value);
+        }
+    }
     return QString();
 }
 
@@ -35,9 +44,11 @@ QTBColorSettings QTBStatesMapping::colorSettings(qlonglong value, bool &colorIsS
 {
     QTBColorSettings cs;
     colorIsSet = false;
-    if(mStatesColor.contains(value)) {
-        cs = mStatesColor.value(value);
-        colorIsSet = true;
+    if(mStatesActive.contains(value)) {
+        if(mStatesActive.value(value)) {
+            cs = mStatesColor.value(value);
+            colorIsSet = true;
+        }
     }
     return cs;
 }
@@ -53,6 +64,7 @@ void QTBStatesMapping::clearStates()
 {
     mStatesColor.clear();
     mStatesText.clear();
+    mStatesActive.clear();
     mModified = true;
 }
 
@@ -74,4 +86,9 @@ bool QTBStatesMapping::modified() const
 void QTBStatesMapping::setModified(bool modified)
 {
     mModified = modified;
+}
+
+QMap<qlonglong, bool> QTBStatesMapping::statesActive() const
+{
+    return mStatesActive;
 }

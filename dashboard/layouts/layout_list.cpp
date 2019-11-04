@@ -116,6 +116,15 @@ void QTBLayoutList::addElement(QCPLayoutElement *element)
     }
 }
 
+void QTBLayoutList::takeAllElements()
+{
+    int size = elementCount();
+    for (int i=0; i< size; i++) {
+        takeAt(0);
+    }
+    simplify();
+}
+
 double QTBLayoutList::rowHeight() const
 {
     return mRowHeight;

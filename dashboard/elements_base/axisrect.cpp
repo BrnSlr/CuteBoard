@@ -5,6 +5,7 @@ QTBAxisRect::QTBAxisRect(QTBoard *dashboard) :
     mBottomAxisVisible(true),
     mLeftAxisVisible(true)
 {
+    setLayer("main");
     setMinimumMargins(QMargins(22,10,22,10));
     setMinimumSize(1, 1);
     setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);

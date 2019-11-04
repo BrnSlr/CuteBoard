@@ -84,8 +84,8 @@ void QTBPage::loadPageElements(QTBoard *board)
             board->dashboardLayout()->addElement(element,
                                                  elementRect);
 
-            settings.beginGroup("ElementParameters");
-            element->loadParametersSettings(&settings);
+            settings.beginGroup("ElementConfigurations");
+            element->loadConfigurations(&settings);
             settings.endGroup();
         }
     }
@@ -113,8 +113,8 @@ void QTBPage::savePageElements(QTBoard *board)
             el->saveSettings(&settings);
             settings.endGroup();
 
-            settings.beginGroup("ElementParameters");
-            el->saveParametersSettings(&settings);
+            settings.beginGroup("ElementConfigurations");
+            el->saveConfigurations(&settings);
             settings.endGroup();
         }
     }

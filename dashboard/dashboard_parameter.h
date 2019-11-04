@@ -43,14 +43,14 @@ public:
 
     void update(UpdateMode mode = umValue);
 
-    bool configurationChanged();
-    void propertiesChecked();
+    bool configurationHasChanged();
+    void modificationsApplied();
 
     bool connected() const;
-    void disconnectProperties();
+    void disconnectSharedConfiguration();
 
-    void saveParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull);
-    void loadParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull);
+    void saveParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationMode mode = QTBParameterConfiguration::cmFull);
+    void loadParameterSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationMode mode = QTBParameterConfiguration::cmFull);
 
     QExplicitlySharedDataPointer<QTBParameterConfiguration> sharedParameterConfiguration() const;
     QExplicitlySharedDataPointer<QTBParameterConfiguration> exclusiveParameterConfiguration() const;
@@ -88,7 +88,6 @@ protected:
     QExplicitlySharedDataPointer<QTBParameterConfiguration> mSharedParameterConfiguration;
     QExplicitlySharedDataPointer<QTBParameterConfiguration> mExclusiveParameterConfiguration;
     QExplicitlySharedDataPointer<QTBParameterConfiguration> mParameterConfiguration;
-
 };
 
 #endif // VISUALISATIONPARAMETER_H

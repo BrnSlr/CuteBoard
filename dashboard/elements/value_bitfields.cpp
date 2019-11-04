@@ -7,6 +7,7 @@ QTBValueBitfields::QTBValueBitfields(QTBoard *dashboard) :
     mBitsSize(32)
 {
     mValueFormat = vsfHexa;
+    setConfigurationMode(QTBParameterConfiguration::cmBitFields);
 }
 
 void QTBValueBitfields::clearElement()
@@ -56,7 +57,7 @@ void QTBValueBitfields::initializeElement(QTBoard *dashboard)
 
             QTBAdjustTextElement *bitLabel = new QTBAdjustTextElement(dashboard);
             bitLabel->setMaxPointSize(8);
-            //            bitLabel->setAdjustStrategy(QTBAdjustTextElement::asElide);
+            bitLabel->setAdjustStrategy(QTBAdjustTextElement::asElide);
             bitLabel->setTextColor(QColor(160, 170, 180));
             bitLabel->setMinimumSize(100,1);
             bitLabel->setTextFlags(Qt::AlignVCenter | Qt::AlignLeft);
@@ -106,37 +107,37 @@ void QTBValueBitfields::buildLayout()
     mAxisRect->setVisible(true);
 
     switch(mValueFormat) {
-    case vsfDecimal:
-    case vsfHexa:
-    {
-        mBitsSize = 32;
-        mAxisRect->axis(QCPAxis::atLeft)->setRange(0,32);
-        for(int i=0; i< mBitsSize; i++) {
-            mBitLabels.at(i)->setVisible(true);
-            mBitsLayout->addElement(mBitLabels.at(i));
-        }
-        break;
-    }
-    case vsfHexaLsb16:
-    {
-        mBitsSize = 16;
-        mAxisRect->axis(QCPAxis::atLeft)->setRange(0,16);
-        for(int i=16; i< 2*mBitsSize; i++) {
-            mBitLabels.at(i)->setVisible(true);
-            mBitsLayout->addElement(mBitLabels.at(i));
-        }
-        break;
-    }
-    case vsfHexaMsb16:
-    {
-        mBitsSize = 16;
-        mAxisRect->axis(QCPAxis::atLeft)->setRange(16,32);
-        for(int i=0; i< mBitsSize; i++) {
-            mBitLabels.at(i)->setVisible(true);
-            mBitsLayout->addElement(mBitLabels.at(i));
-        }
-        break;
-    }
+        case vsfDecimal:
+        case vsfHexa:
+            {
+                mBitsSize = 32;
+                mAxisRect->axis(QCPAxis::atLeft)->setRange(0,32);
+                for(int i=0; i< mBitsSize; i++) {
+                    mBitLabels.at(i)->setVisible(true);
+                    mBitsLayout->addElement(mBitLabels.at(i));
+                }
+                break;
+            }
+        case vsfHexaLsb16:
+            {
+                mBitsSize = 16;
+                mAxisRect->axis(QCPAxis::atLeft)->setRange(0,16);
+                for(int i=16; i< 2*mBitsSize; i++) {
+                    mBitLabels.at(i)->setVisible(true);
+                    mBitsLayout->addElement(mBitLabels.at(i));
+                }
+                break;
+            }
+        case vsfHexaMsb16:
+            {
+                mBitsSize = 16;
+                mAxisRect->axis(QCPAxis::atLeft)->setRange(16,32);
+                for(int i=0; i< mBitsSize; i++) {
+                    mBitLabels.at(i)->setVisible(true);
+                    mBitsLayout->addElement(mBitLabels.at(i));
+                }
+                break;
+            }
     }
 
     mLayout->addElement(mBitsLayout);
@@ -177,25 +178,24 @@ void QTBValueBitfields::edit()
     editor.exec();
 }
 
-void QTBValueBitfields::addDashboardParameter(QSharedPointer<QTBDashboardParameter> dashParameter)
+QSharedPointer<QTBDashboardParameter> QTBValueBitfields::addParameter(QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings)
 {
-    QTBDashboardElement::addDashboardParameter(dashParameter);
+    QSharedPointer<QTBDashboardParameter> dashParam = QTBDashboardElement::addParameter(parameterSettings);
+    return dashParam;
+}
+
+QSharedPointer<QTBDashboardParameter> QTBValueBitfields::addParameter(QString paramLabel)
+{
+    QSharedPointer<QTBDashboardParameter> dashParam = QTBDashboardElement::addParameter(paramLabel);
+    return dashParam;
+}
+
+void QTBValueBitfields::addParameter(QSharedPointer<QTBDashboardParameter> dashParameter)
+{
+    QTBDashboardElement::addParameter(dashParameter);
     processHistoricalSamples();
 }
 
-void QTBValueBitfields::saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
-{
-    Q_UNUSED(mode)
-    QTBDashboardElement::saveParametersSettings(settings, QTBParameterConfiguration::cmBitFields);
-}
-
-void QTBValueBitfields::loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
-{
-    Q_UNUSED(mode)
-    QTBDashboardElement::loadParametersSettings(settings, QTBParameterConfiguration::cmBitFields);
-
-    updateElement();
-}
 
 void QTBValueBitfields::processNewSamples()
 {
@@ -204,30 +204,30 @@ void QTBValueBitfields::processNewSamples()
 
         std::bitset<32> bits(dashParam->getValueBinaryWeight32());
 
+        std::size_t bitIndex = 0;
+        int graphIndex = 0;
         for (std::size_t i = 0; i < std::size_t(mBitsSize); ++i) {
-            std::size_t bitIndex;
-            int graphIndex;
 
             switch(mValueFormat) {
-            case vsfDecimal:
-            case vsfHexa:
-            {
-                bitIndex = i;
-                graphIndex = mBitsSize - int(bitIndex) - 1;
-                break;
-            }
-            case vsfHexaLsb16:
-            {
-                bitIndex = i;
-                graphIndex = 2*mBitsSize - int(bitIndex) - 1;
-                break;
-            }
-            case vsfHexaMsb16:
-            {
-                bitIndex = i + std::size_t(mBitsSize);
-                graphIndex = 2*mBitsSize - int(bitIndex) - 1;
-                break;
-            }
+                case vsfDecimal:
+                case vsfHexa:
+                    {
+                        bitIndex = i;
+                        graphIndex = mBitsSize - int(bitIndex) - 1;
+                        break;
+                    }
+                case vsfHexaLsb16:
+                    {
+                        bitIndex = i;
+                        graphIndex = 2*mBitsSize - int(bitIndex) - 1;
+                        break;
+                    }
+                case vsfHexaMsb16:
+                    {
+                        bitIndex = i + std::size_t(mBitsSize);
+                        graphIndex = 2*mBitsSize - int(bitIndex) - 1;
+                        break;
+                    }
             }
 
             if(dashParam->getBitLogic(int(bitIndex))) {
@@ -242,7 +242,7 @@ void QTBValueBitfields::processNewSamples()
                     mGraphs.at(graphIndex)->addData(dashParam->getTimestamp(), double(bitIndex) +0.9);
             }
 
-            mGraphs.at(graphIndex)->data()->removeBefore(dashParam->getTimestamp()-5);
+            mGraphs.at(graphIndex)->data()->removeBefore(dashParam->getTimestamp()-6);
         }
 
         mAxisRect->axis(QCPAxis::atBottom)->setRange(mBoard->currentTimestamp() - 5, mBoard->currentTimestamp());
@@ -264,30 +264,30 @@ void QTBValueBitfields::processHistoricalSamples()
             for (it = serie.constBegin(); it != serie.constEnd(); ++it) {
                 std::bitset<32> bits(it->value().uint32_value());
 
+                std::size_t bitIndex = 0;
+                int graphIndex = 0;
                 for (std::size_t i = 0; i < std::size_t(mBitsSize); ++i) {
-                    std::size_t bitIndex;
-                    int graphIndex;
 
                     switch(mValueFormat) {
-                    case vsfDecimal:
-                    case vsfHexa:
-                    {
-                        bitIndex = i;
-                        graphIndex = mBitsSize - int(bitIndex) - 1;
-                        break;
-                    }
-                    case vsfHexaLsb16:
-                    {
-                        bitIndex = i;
-                        graphIndex = 2*mBitsSize - int(bitIndex) - 1;
-                        break;
-                    }
-                    case vsfHexaMsb16:
-                    {
-                        bitIndex = i + std::size_t(mBitsSize);
-                        graphIndex = 2*mBitsSize - int(bitIndex) - 1;
-                        break;
-                    }
+                        case vsfDecimal:
+                        case vsfHexa:
+                            {
+                                bitIndex = i;
+                                graphIndex = mBitsSize - int(bitIndex) - 1;
+                                break;
+                            }
+                        case vsfHexaLsb16:
+                            {
+                                bitIndex = i;
+                                graphIndex = 2*mBitsSize - int(bitIndex) - 1;
+                                break;
+                            }
+                        case vsfHexaMsb16:
+                            {
+                                bitIndex = i + std::size_t(mBitsSize);
+                                graphIndex = 2*mBitsSize - int(bitIndex) - 1;
+                                break;
+                            }
                     }
 
                     if(dashParam->getBitLogic(int(bitIndex))) {
@@ -350,6 +350,7 @@ void QTBValueBitfields::updateSizeConstraints()
         if(mRect.height() < singleElementSize.height())
             labelSize.setHeight(mRect.height());
 
+        mTextValue->setMinimumSize(mRect.width(), 0.5 * labelSize.height());
         mTextValue->setMaximumSize(mRect.width(), 0.5 * labelSize.height());
     }
 
@@ -358,12 +359,12 @@ void QTBValueBitfields::updateSizeConstraints()
 
 void QTBValueBitfields::checkSizeAndVisibility()
 {
-    if(mValueVisible) {
-        if(!mTextValue->visible()) {
-            mTextValue->setMaximumSize(mRect.width(), 0);
-            mMainLayout->needUpdate(true);
-        }
-    }
+//    if(mValueVisible) {
+//        if(!mTextValue->visible()) {
+//            mTextValue->setMaximumSize(mRect.width(), 0);
+//            mMainLayout->needUpdate(true);
+//        }
+//    }
     QTBValueDisplay::checkSizeAndVisibility();
 }
 

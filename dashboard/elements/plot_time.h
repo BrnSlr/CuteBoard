@@ -4,6 +4,7 @@
 #include "dashboard/layouts/layout_grid.h"
 #include "dashboard/dashboard_element.h"
 #include "dashboard/elements_base/axisrect.h"
+#include "dashboard/elements_base/graph.h"
 #include "dashboard/elements_factory/elementfactory.h"
 
 #define GRAPHPLOT_NAME "Plot - Graphs Y=f(t)"
@@ -42,10 +43,12 @@ public:
 
     virtual void loadSettings(QSettings *settings)Q_DECL_OVERRIDE;
     virtual void saveSettings(QSettings *settings)Q_DECL_OVERRIDE;
-    void saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
-    void loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
 
-    void addDashboardParameter(QSharedPointer<QTBDashboardParameter> dashParameter) Q_DECL_OVERRIDE;
+    void loadConfigurations(QSettings *settings) Q_DECL_OVERRIDE;
+
+    QSharedPointer<QTBDashboardParameter> addParameter(QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings) Q_DECL_OVERRIDE;
+    QSharedPointer<QTBDashboardParameter> addParameter(QString paramLabel) Q_DECL_OVERRIDE;
+    void addParameter(QSharedPointer<QTBDashboardParameter> dashParameter) Q_DECL_OVERRIDE;
     void removeDashParameter(int index) Q_DECL_OVERRIDE;
 
     void update(UpdatePhase phase) Q_DECL_OVERRIDE;
@@ -113,7 +116,7 @@ protected:
     QCPRange mAutoRange;
 };
 
-static ElementRegister<QTBPlotTime> graphRegister(QString(GRAPHPLOT_NAME), ":/elements/icons8_cosine_50px.png");
+static ElementRegister<QTBPlotTime> graphRegister(QString(GRAPHPLOT_NAME), QTBDashboardElement::etMultiParam, ":/elements/icons8_cosine_50px.png");
 
 
 #endif // PLOTTIME_H

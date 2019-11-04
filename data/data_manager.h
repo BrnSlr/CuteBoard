@@ -7,7 +7,7 @@
 
 #define TEMPO_MS_PARAM_UPDATE 500
 
-class DataSourceInterface;
+class DataSource;
 class QTBDataManager : public QObject
 {
     Q_OBJECT
@@ -16,9 +16,7 @@ public:
     ~QTBDataManager();
 
     bool registerParameter(const QSharedPointer<QTBParameter>& param);
-    bool registerParameterUnsafe(const QSharedPointer<QTBParameter>& param);
-    QList<bool> registerParameters(const QList<QSharedPointer<QTBParameter>>& listParam);
-
+    void unregisterParameter(const QSharedPointer<QTBParameter>& param);
     void unregisterParameter(quint32 parameterId);
     void unregisterParameter(const QString& label);
 
@@ -40,7 +38,9 @@ public:
     void lockData() { mMutex.lock(); }
     void unlockData() { mMutex.unlock(); }
 
-    QMap<QString, DataSourceInterface *> dataSources() const;
+    QMap<QString, DataSource*> dataSources() const;
+
+    QHash<QString, QString> parameterSourceNames() const;
 
 protected:
     void loadDataSources();
@@ -48,6 +48,8 @@ protected:
 signals:
     void parametersUpdated();
     void dataUpdated(QDateTime time);
+    void newParameters();
+    void updateDashboard();
 
 public slots:
     void updateData();
@@ -56,8 +58,9 @@ protected:
     QSharedPointer<QTBDataBuffer> mDataBuffer;
     QHash<quint32, QSharedPointer<QTBParameter>> mParameters;
     QHash<QString, quint32> mParameterLabels;
+    QHash<QString, QString> mParameterSourceNames;
     QTimer *mParametersTimer;
-    QMap<QString, DataSourceInterface *> mDataSources;
+    QMap<QString, DataSource *> mDataSources;
     QThread *mThread;
     QTimer *mDataTimer;
     mutable QMutex mMutex;

@@ -19,32 +19,43 @@ bool QTBProject::generate(const QString& workingDirectory, const QString& projec
 
     mProjectPath = QDir::toNativeSeparators(workingDirectory + QDir::separator() + projectName);
 
-    QFileInfo dirInfo(mProjectPath);
-    if(dirInfo.isWritable()) {
-        mSettingsPath = mProjectPath + QDir::separator() + projectName + QString(".project");
+    QDir dirWorking(workingDirectory);
 
-        QSettings settings(mSettingsPath, QSettings::IniFormat);
-        settings.sync();
+    if(dirWorking.mkdir(projectName)) {
+        QFileInfo dirInfo(mProjectPath);
+        if(dirInfo.isWritable()) {
+            mSettingsPath = mProjectPath + QDir::separator() + projectName + QString(".project");
 
-        setCreationDate(QDateTime::currentDateTime());
-        setModificationDate(QDateTime::currentDateTime());
-        setName(projectName);
+            QSettings settings(mSettingsPath, QSettings::IniFormat);
+            settings.sync();
 
-        mPagesPath = mProjectPath + QDir::separator() + QString("Pages");
-        mPagesDirWrittable = true;
+            setCreationDate(QDateTime::currentDateTime());
+            setModificationDate(QDateTime::currentDateTime());
+            setName(projectName);
 
-        QDir dirPages(mPagesPath);
-        if (!dirPages.exists())
-            dirPages.mkpath(".");
+            mPagesPath = mProjectPath + QDir::separator() + QString("Pages");
+            mPagesDirWrittable = true;
 
-        mParamSettingsPath = mProjectPath + QDir::separator() + QString("Properties");
-        mParamSettingsDirWrittable = true;
+            QDir dirPages(mPagesPath);
+            if (!dirPages.exists())
+                dirPages.mkpath(".");
 
-        QDir dirParamSettings(mParamSettingsPath);
-        if (!dirParamSettings.exists())
-            dirParamSettings.mkpath(".");
+            mParamSettingsPath = mProjectPath + QDir::separator() + QString("Parameters");
+            mParamSettingsDirWrittable = true;
 
-        status = true;
+            QDir dirParamSettings(mParamSettingsPath);
+            if (!dirParamSettings.exists())
+                dirParamSettings.mkpath(".");
+
+
+            mAlarmsConfigPath = mProjectPath + QDir::separator() + QString("Alarms");
+
+            QDir dirAlarmConfigs(mAlarmsConfigPath);
+            if (!dirAlarmConfigs.exists())
+                dirAlarmConfigs.mkpath(".");
+
+            status = true;
+        }
     }
 
     QApplication::restoreOverrideCursor();
@@ -53,7 +64,7 @@ bool QTBProject::generate(const QString& workingDirectory, const QString& projec
     return status;
 }
 
-bool QTBProject::load(const QString& workingDirectory, const QString& projectName)
+bool QTBProject::load(const QString& workingDirectory, const QString& projectName, bool fullLoad)
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QApplication::processEvents();
@@ -70,13 +81,13 @@ bool QTBProject::load(const QString& workingDirectory, const QString& projectNam
         QSettings settings(mSettingsPath, QSettings::IniFormat);
 
         if(settings.contains(PRO_SETTINGS_KEY_CREATIONDATE))
-            setCreationDate(settings.value(PRO_SETTINGS_KEY_CREATIONDATE).toDateTime());
+             mCreationDate = settings.value(PRO_SETTINGS_KEY_CREATIONDATE).toDateTime();
 
         if(settings.contains(PRO_SETTINGS_KEY_MODIFICATIONDATE))
-            setModificationDate(settings.value(PRO_SETTINGS_KEY_MODIFICATIONDATE).toDateTime());
+            mModificationDate = settings.value(PRO_SETTINGS_KEY_MODIFICATIONDATE).toDateTime();
 
         if(settings.contains(PRO_SETTINGS_KEY_NAME))
-            setName(settings.value(PRO_SETTINGS_KEY_NAME).toString());
+            mName = settings.value(PRO_SETTINGS_KEY_NAME).toString();
 
         mPagesPath = mProjectPath + QDir::separator() + QString("Pages");
 
@@ -94,9 +105,8 @@ bool QTBProject::load(const QString& workingDirectory, const QString& projectNam
                 mPagesDirWrittable = false;
         }
 
-        loadPages();
 
-        mParamSettingsPath = mProjectPath + QDir::separator() + QString("Properties");
+        mParamSettingsPath = mProjectPath + QDir::separator() + QString("Parameters");
 
         QDir dirVisuParam(mParamSettingsPath);
         if (!dirVisuParam.exists()) {
@@ -112,10 +122,16 @@ bool QTBProject::load(const QString& workingDirectory, const QString& projectNam
                 mParamSettingsDirWrittable = false;
         }
 
-        loadParametersSettings();
 
-        emit loaded();
+        mAlarmsConfigPath = mProjectPath + QDir::separator() + QString("Alarms");
 
+        if(fullLoad) {
+            loadPages();
+            loadParametersSettings();
+            loadAlarmsConfigurations();
+
+            emit loaded();
+        }
 
         status = true;
     }
@@ -162,6 +178,24 @@ void QTBProject::requestPage(const QString& pageName)
         mRequestedPageName = pageName;
         emit pageRequested();
     }
+}
+
+QString QTBProject::alarmsConfigPath() const
+{
+    return mAlarmsConfigPath;
+}
+
+QMap<QString, QExplicitlySharedDataPointer<QTBAlarmConfiguration> > QTBProject::alarmsConfigurations() const
+{
+    return mAlarmsConfigurations;
+}
+
+QExplicitlySharedDataPointer<QTBAlarmConfiguration> QTBProject::alarmConfiguration(const QString &name)
+{
+    if(mAlarmsConfigurations.contains(name)) {
+        return mAlarmsConfigurations.value(name);
+    }
+    return QExplicitlySharedDataPointer<QTBAlarmConfiguration>();
 }
 
 QString QTBProject::requestedPageName() const
@@ -231,7 +265,7 @@ void QTBProject::loadParametersSettings()
     mParametersSettings.clear();
 
     QDir directory(mParamSettingsPath);
-    QStringList files = directory.entryList(QStringList() << "*.prop" ,QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    QStringList files = directory.entryList(QStringList() << "*.param" ,QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot);
 
     foreach(QString filename, files) {
 
@@ -309,6 +343,29 @@ QString QTBProject::currentPageName() const
 QMap<QString, QMap<QString, QExplicitlySharedDataPointer<QTBParameterConfiguration> > > QTBProject::parametersSettings() const
 {
     return mParametersSettings;
+}
+
+void QTBProject::loadAlarmsConfigurations()
+{
+    mAlarmsConfigurations.clear();
+
+    QDir directory(mAlarmsConfigPath);
+    QStringList files = directory.entryList(QStringList() << "*.alrm" ,QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+
+    foreach(QString filename, files) {
+
+        QString alarmConfigPath = mAlarmsConfigPath + QDir::separator() + filename ;
+        QExplicitlySharedDataPointer<QTBAlarmConfiguration> alarmConfig = QExplicitlySharedDataPointer<QTBAlarmConfiguration>(new QTBAlarmConfiguration());
+
+        alarmConfig->loadFromFile(alarmConfigPath);
+        mAlarmsConfigurations.insert(alarmConfig->name(), alarmConfig);
+    }
+}
+
+void QTBProject::addAlarmConfiguration(QExplicitlySharedDataPointer<QTBAlarmConfiguration> alarmConfig)
+{
+    mAlarmsConfigurations.insert(alarmConfig->name(), alarmConfig);
+    setModificationDate(QDateTime::currentDateTime());
 }
 
 QMap<QString, QTBPage *> QTBProject::pages() const

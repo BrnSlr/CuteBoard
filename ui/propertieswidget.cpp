@@ -41,6 +41,15 @@ void PropertiesWidget::updateUi(QExplicitlySharedDataPointer<QTBParameterConfigu
     ui->colorLineEdit->setMode(parameterSettings->defaultColorSettingsRef().mode());
     ui->colorModeComboBox->setCurrentIndex(parameterSettings->defaultColorSettingsRef().mode());
 
+    ui->itemsColorComboBox->setCurrentIndex(parameterSettings->itemColorMode());
+    if(parameterSettings->itemColorMode() == QTBParameterConfiguration::icCustom ) {
+        ui->itemsColorWidget->setVisible(true);
+        ui->itemsColorLineEdit->setText(parameterSettings->itemStaticColor().name());
+    } else {
+        ui->itemsColorWidget->setVisible(false);
+        ui->itemsColorLineEdit->setText(parameterSettings->itemStaticColor().name());
+    }
+
     ui->outOfRangeCheckBox->setChecked(parameterSettings->outOfRangeColorEnabled());
     ui->outOfRangeColorLineEdit->setColor(parameterSettings->outOfRangeColorSettingsRef().color());
     ui->outOfRangeColorLineEdit->setMode(parameterSettings->outOfRangeColorSettingsRef().mode());
@@ -132,11 +141,13 @@ void PropertiesWidget::updateUi(QExplicitlySharedDataPointer<QTBParameterConfigu
     ui->scatterStyleComboBox->setCurrentIndex(parameterSettings->scatterShape());
     ui->scatterSizeSpinBox->setValue(parameterSettings->scatterSize());
 
-    ui->graphBrushCheckBox->setChecked(parameterSettings->graphBrush());
-    ui->graphLineStyleComboBox->setCurrentIndex(parameterSettings->graphLineStyle());
+    ui->brushStyleComboBox->setCurrentIndex(parameterSettings->graphBrush());
+    if(parameterSettings->graphLineStyle() == QCPGraph::lsImpulse)
+        ui->graphLineStyleComboBox->setCurrentIndex(2);
+    else
+        ui->graphLineStyleComboBox->setCurrentIndex(parameterSettings->graphLineStyle());
     ui->itemsThresholdsCheckBox->setChecked(parameterSettings->itemsThresholdsVisible());
 
-    ui->curveLineStyleComboBox->setCurrentIndex(parameterSettings->curveLineStyle());
     ui->curveTracerCheckBox->setChecked(parameterSettings->curveTracerVisible());
 }
 
@@ -201,7 +212,7 @@ void PropertiesWidget::updateParameterSettings(QExplicitlySharedDataPointer<QTBP
                 cs.setMode(cl->mode());
                 cs.setColor(cl->color());
 
-                parameterSettings->statesSettingsRef().addState(val, cl->text(), cs);
+                parameterSettings->statesSettingsRef().addState(true, val, cl->text(), cs);
             }
         }
     }
@@ -219,12 +230,14 @@ void PropertiesWidget::updateParameterSettings(QExplicitlySharedDataPointer<QTBP
     parameterSettings->setScatterShape(QCPScatterStyle::ScatterShape(ui->scatterStyleComboBox->currentIndex()));
     parameterSettings->setScatterSize(ui->scatterSizeSpinBox->value());
 
-    parameterSettings->setGraphBrush(ui->graphBrushCheckBox->isChecked());
+    parameterSettings->setGraphBrush(QTBParameterConfiguration::BrushStyle(ui->brushStyleComboBox->currentIndex()));
     parameterSettings->setGraphLineStyle(QCPGraph::LineStyle(ui->graphLineStyleComboBox->currentIndex()));
     parameterSettings->setItemsThresholdsVisible(ui->itemsThresholdsCheckBox->isChecked());
 
-    parameterSettings->setCurveLineStyle(QCPCurve::LineStyle(ui->curveLineStyleComboBox->currentIndex()));
     parameterSettings->setCurveTracerVisible(ui->curveTracerCheckBox->isChecked());
+
+    parameterSettings->setItemColorMode(QTBParameterConfiguration::ItemColor(ui->itemsColorComboBox->currentIndex()));
+    parameterSettings->setItemStaticColor(ui->itemsColorLineEdit->text());
 }
 
 void PropertiesWidget::on_colorModeComboBox_currentIndexChanged(int index)
@@ -278,7 +291,7 @@ void PropertiesWidget::on_connectedCheckBox_stateChanged(int arg1)
 {
     if(arg1 == Qt::Checked) {
         emit connectProperties(true);
-    }   else {
+    } else {
         emit connectProperties(false);
     }
 }
@@ -290,8 +303,10 @@ void PropertiesWidget::setEditionMode(const EditionMode &mode)
     switch(mEditionMode) {
     case emCreation:
         ui->connectedCheckBox->setChecked(true);
-        ui->connectedWidget->setVisible(true);
-        ui->connectedWidget->setEnabled(false);
+        ui->configurationWidget->setVisible(true);
+        ui->configurationWidget->setEnabled(true);
+        ui->connectedCheckBox->setEnabled(false);
+        ui->connectedWidget->setEnabled(true);
         ui->descriptionWidget->setEnabled(true);
         ui->descriptionLineEdit->setEnabled(true);
         ui->labelWidget->setEnabled(true);
@@ -300,8 +315,8 @@ void PropertiesWidget::setEditionMode(const EditionMode &mode)
         break;
     case emEdition:
         ui->connectedCheckBox->setChecked(true);
-        ui->connectedWidget->setVisible(true);
-        ui->connectedWidget->setEnabled(false);
+        ui->configurationWidget->setVisible(true);
+        ui->configurationWidget->setEnabled(false);
         ui->descriptionWidget->setEnabled(false);
         ui->descriptionLineEdit->setEnabled(false);
         ui->labelWidget->setEnabled(false);
@@ -310,8 +325,8 @@ void PropertiesWidget::setEditionMode(const EditionMode &mode)
         break;
     case emElementConnected:
         ui->connectedCheckBox->setChecked(true);
-        ui->connectedWidget->setVisible(true);
-        ui->connectedWidget->setEnabled(true);
+        ui->configurationWidget->setVisible(true);
+        ui->configurationWidget->setEnabled(true);
         ui->descriptionWidget->setEnabled(false);
         ui->descriptionLineEdit->setEnabled(false);
         ui->labelWidget->setEnabled(false);
@@ -322,8 +337,8 @@ void PropertiesWidget::setEditionMode(const EditionMode &mode)
         break;
     case emElementDisconnected:
         ui->connectedCheckBox->setChecked(false);
-        ui->connectedWidget->setVisible(true);
-        ui->connectedWidget->setEnabled(true);
+        ui->configurationWidget->setVisible(true);
+        ui->configurationWidget->setEnabled(true);
         ui->descriptionWidget->setEnabled(false);
         ui->descriptionLineEdit->setEnabled(false);
         ui->labelWidget->setEnabled(false);
@@ -334,8 +349,8 @@ void PropertiesWidget::setEditionMode(const EditionMode &mode)
         break;
     case emElementStandAlone:
         ui->connectedCheckBox->setChecked(false);
-        ui->connectedWidget->setVisible(false);
-        ui->connectedWidget->setEnabled(false);
+        ui->configurationWidget->setVisible(false);
+        ui->configurationWidget->setEnabled(false);
         ui->descriptionWidget->setVisible(false);
         ui->descriptionWidget->setEnabled(false);
         ui->descriptionLineEdit->setEnabled(false);
@@ -595,21 +610,22 @@ void PropertiesWidget::removeState_clicked()
     }
 }
 
-void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::ConfigurationModule &propertiesMode)
+void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::ConfigurationMode &propertiesMode)
 {
     mPropertiesMode = propertiesMode;
 
     ui->listWidget->clear();
     ui->listWidget->addItem("General");
-    ui->listWidget->addItem("Style");
     switch(mPropertiesMode) {
     case QTBParameterConfiguration::cmFull:
+        ui->listWidget->addItem("Style");
         ui->listWidget->addItem("Thresholds");
         ui->listWidget->addItem("States");
         ui->listWidget->addItem("Bitfields");
         ui->itemsStyleWidget->setVisible(true);
         break;
     case QTBParameterConfiguration::cmValue:
+        ui->listWidget->addItem("Style");
         ui->listWidget->addItem("Thresholds");
         ui->itemsStyleWidget->setVisible(false);
         break;
@@ -617,9 +633,26 @@ void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::Config
         ui->listWidget->addItem("States");
         ui->itemsStyleWidget->setVisible(false);
         break;
-    case QTBParameterConfiguration::cmCurve:
+    case QTBParameterConfiguration::cmCurveX:
+        ui->listWidget->addItem("Style");
+        ui->listWidget->addItem("Thresholds");
+        ui->itemsStyleWidget->setVisible(false);
+        ui->curveWidget->setVisible(false);
+        ui->graphWidget->setVisible(false);
+        break;
+    case QTBParameterConfiguration::cmCurveY:
+        ui->listWidget->addItem("Style");
         ui->listWidget->addItem("Thresholds");
         ui->itemsStyleWidget->setVisible(true);
+        ui->curveWidget->setVisible(true);
+        ui->graphWidget->setVisible(false);
+        break;
+    case QTBParameterConfiguration::cmGraph:
+        ui->listWidget->addItem("Style");
+        ui->listWidget->addItem("Thresholds");
+        ui->itemsStyleWidget->setVisible(true);
+        ui->curveWidget->setVisible(false);
+        ui->graphWidget->setVisible(true);
         break;
     case QTBParameterConfiguration::cmBitFields:
         ui->listWidget->addItem("Bitfields");
@@ -631,9 +664,9 @@ void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::Config
 void PropertiesWidget::on_itemsColorComboBox_currentIndexChanged(int index)
 {
     if(index == 2)
-        ui->itemsColorWidget->setEnabled(true);
+        ui->itemsColorWidget->setVisible(true);
     else
-        ui->itemsColorWidget->setEnabled(false);
+        ui->itemsColorWidget->setVisible(false);
 }
 
 void PropertiesWidget::on_itemsColorToolButton_clicked()

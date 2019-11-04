@@ -1,12 +1,12 @@
 #ifndef PARAMETERSLISTWIDGET_H
 #define PARAMETERSLISTWIDGET_H
 
-#include <QListWidget>
+#include <QTreeWidget>
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QMimeData>
 
-class ParametersListWidget : public QListWidget
+class ParametersListWidget : public QTreeWidget
 {
     Q_OBJECT
 public:

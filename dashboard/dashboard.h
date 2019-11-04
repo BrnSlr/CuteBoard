@@ -23,6 +23,7 @@ public:
     QSharedPointer<QTBDataManager> dataManager() const;
     QSharedPointer<QTBProject> project() const;
 
+    void droppedAlarm(QDropEvent *event);
     void droppedParameterSettings(QDropEvent *event);
     void droppedDataParameter(QDropEvent *event);
     void checkModification();
@@ -32,7 +33,8 @@ public:
 
     static QString elementMimeType() { return QStringLiteral("qtb/element"); }
     static QString dataParameterMimeType() { return QStringLiteral("qtb/dataparam"); }
-    static QString parameterSettingsMimeType() { return QStringLiteral("qtb/paramsettings"); }
+    static QString parameterConfigMimeType() { return QStringLiteral("qtb/paramconfig"); }
+    static QString alarmConfigMimeType() { return QStringLiteral("qtb/alarmconfig"); }
 
     bool liveDataRefreshEnabled() const;
     void setLiveDataRefreshEnabled(bool liveDataRefreshEnabled);
@@ -41,6 +43,7 @@ public:
 
     QColor backColor() const;
     QColor frontColor() const;
+    QColor randomColor();
 
 signals:
     void timeUpdate(QDateTime);
@@ -60,15 +63,16 @@ protected:
     QColor mBoardColor;
     QColor mBackColor;
     QColor mFrontColor;
+    int mColorIndex;
 
     QTBLayoutReactive *mDashboardLayout;
     QSharedPointer<QTBDataManager> mDataManager;
     QSharedPointer<QTBProject> mProject;
 
-    void dragEnterEvent(QDragEnterEvent *event) override;
-    void dropEvent(QDropEvent *event) override;
-    void dragMoveEvent(QDragMoveEvent *event) override;
-    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
+    void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
+    void dragMoveEvent(QDragMoveEvent *event) Q_DECL_OVERRIDE;
+    void dragLeaveEvent(QDragLeaveEvent *event) Q_DECL_OVERRIDE;
 
     void initStyle();
 

@@ -13,12 +13,26 @@ class QTBParameterConfiguration : public QSharedData
 {
 public:
 
-    enum ConfigurationModule {
+    enum ConfigurationMode {
         cmFull,
         cmValue,
         cmState,
         cmBitFields,
-        cmCurve
+        cmCurveX,
+        cmCurveY,
+        cmGraph
+    };
+
+    enum ItemColor {
+        icBase,
+        icDynamic,
+        icCustom
+    };    
+
+    enum BrushStyle {
+        bsNone,
+        bsFilled,
+        bsGradient
     };
 
     QTBParameterConfiguration();
@@ -26,8 +40,8 @@ public:
     void saveToFile(const QString& saveDirectory);
     void loadFromFile(const QString& settingsFile);
 
-    void save(QSettings *settings, ConfigurationModule mode = cmFull);
-    void load(QSettings *settings, ConfigurationModule mode = cmFull);
+    void save(QSettings *settings, ConfigurationMode mode = cmFull);
+    void load(QSettings *settings, ConfigurationMode mode = cmFull);
 
     int precision() const;
     QString description() const;
@@ -40,7 +54,7 @@ public:
     bool userLabelEnabled() const;
     bool userUnitEnabled() const;
     bool outOfRangeColorEnabled() const;
-    bool graphBrush() const;
+    BrushStyle graphBrush() const;
     QCPGraph::LineStyle graphLineStyle() const;
     QCPScatterStyle::ScatterShape scatterShape() const;
     int scatterSize() const;
@@ -49,6 +63,8 @@ public:
     bool itemsThresholdsVisible() const;
     bool curveTracerVisible() const;
     bool modified();
+    QColor itemStaticColor() const;
+    ItemColor itemColorMode() const;
 
     void setPrecision(int precision);
     void setDescription(const QString &description);
@@ -61,7 +77,7 @@ public:
     void setUserLabelEnabled(bool userLabelEnabled);
     void setUserUnitEnabled(bool userUnitEnabled);
     void setOutOfRangeColorEnabled(bool outOfRangeColorEnabled);
-    void setGraphBrush(bool graphBrush);
+    void setGraphBrush(BrushStyle graphBrush);
     void setGraphLineStyle(const QCPGraph::LineStyle &graphLineStyle);
     void setScatterShape(const QCPScatterStyle::ScatterShape &scatterShape);
     void setScatterSize(int scatterSize);
@@ -72,6 +88,8 @@ public:
     void setItemsThresholdsVisible(bool itemsThresholdsVisible);
     void setCurveTracerVisible(bool visible);
     void setModified(bool modified);
+    void setItemStaticColor(const QColor &itemStaticColor);
+    void setItemColorMode(const ItemColor &itemColorMode);
 
     QTBColorSettings &defaultColorSettingsRef();
     QTBThresholdsMapping &thresholdsSettingsRef();
@@ -95,8 +113,11 @@ protected:
 
     bool mItemsThresholdsVisible;
 
+    QColor mItemStaticColor;
+    ItemColor mItemColorMode;
+
     QCPGraph::LineStyle mGraphLineStyle;
-    bool mGraphBrush;
+    BrushStyle mGraphBrush;
 
     QCPCurve::LineStyle mCurveLineStyle;
     QCPScatterStyle::ScatterShape mScatterShape;

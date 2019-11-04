@@ -30,7 +30,7 @@ public:
     void updateParameterSettings(QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings);
 
     void setEditionMode(const EditionMode &mode);
-    void setPropertiesMode(const QTBParameterConfiguration::ConfigurationModule &propertiesMode);
+    void setPropertiesMode(const QTBParameterConfiguration::ConfigurationMode &propertiesMode);
 
 private slots:
     void on_connectedCheckBox_stateChanged(int arg1);
@@ -66,7 +66,7 @@ signals:
 private:
     Ui::PropertiesWidget *ui;
     EditionMode mEditionMode;
-    QTBParameterConfiguration::ConfigurationModule mPropertiesMode;
+    QTBParameterConfiguration::ConfigurationMode mPropertiesMode;
     bool mStatesModified;
     bool mThresholdsModified;
     bool mBitfieldsModified;

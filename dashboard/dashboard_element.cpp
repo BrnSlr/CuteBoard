@@ -5,42 +5,64 @@
 QTBDashboardElement::QTBDashboardElement(QTBoard *dashboard):
     QTBLayoutReactiveElement (dashboard),
     mBoard(nullptr),
-    mParametersMaxCount(1)
+    mParametersMaxCount(1),
+    mConfigurationMode(QTBParameterConfiguration::cmFull)
 {
 
 }
 
 QSharedPointer<QTBDashboardParameter> QTBDashboardElement::addParameter(QExplicitlySharedDataPointer<QTBParameterConfiguration> parameterSettings)
 {
-    QSharedPointer<QTBDashboardParameter> dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(std::move(parameterSettings), mBoard));
-    addDashboardParameter(dashParam);
+    QSharedPointer<QTBDashboardParameter> dashParam;
+    if(!mParametersLabel.contains(parameterSettings->label())) {
+        dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(std::move(parameterSettings), mBoard));
+        addParameter(dashParam);
+    } else {
+        int index = mParametersLabel.indexOf(parameterSettings->label());
+        dashParam = mDashParameters.at(index);
+    }
     return dashParam;
 }
 
 QSharedPointer<QTBDashboardParameter> QTBDashboardElement::addParameter(QString paramLabel)
 {
-    QSharedPointer<QTBDashboardParameter> dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(paramLabel, mBoard));
-    addDashboardParameter(dashParam);
+    QSharedPointer<QTBDashboardParameter> dashParam;
+    if(!mParametersLabel.contains(paramLabel)) {
+        dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(paramLabel, mBoard));
+        addParameter(dashParam);
+    } else {
+        int index = mParametersLabel.indexOf(paramLabel);
+        dashParam = mDashParameters.at(index);
+    }
     return dashParam;
 }
 
 QSharedPointer<QTBDashboardParameter> QTBDashboardElement::addParameter(QSharedPointer<QTBParameter> dataParameter)
 {
-    QSharedPointer<QTBDashboardParameter> dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(dataParameter, mBoard));
-    addDashboardParameter(dashParam);
+    QSharedPointer<QTBDashboardParameter> dashParam;
+    if(!mParametersLabel.contains(dataParameter->label())) {
+        dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(dataParameter, mBoard));
+        addParameter(dashParam);
+    } else {
+        int index = mParametersLabel.indexOf(dataParameter->label());
+        dashParam = mDashParameters.at(index);
+    }
     return dashParam;
 }
 
-void QTBDashboardElement::addDashboardParameter(QSharedPointer<QTBDashboardParameter> dashParameter)
+void QTBDashboardElement::addParameter(QSharedPointer<QTBDashboardParameter> dashParameter)
 {
     if(mDashParameters.contains(dashParameter))
         return;
 
     if(mDashParameters.count() < mParametersMaxCount) {
         mDashParameters.append(dashParameter);
+        mParametersLabel.append(dashParameter->getLabel());
     } else if (mDashParameters.count() == mParametersMaxCount) {
-        mDashParameters.removeLast();
+        QSharedPointer<QTBDashboardParameter> toRemove = mDashParameters.takeLast();
+        mParametersLabel.removeAll(toRemove->getLabel());
         mDashParameters.append(dashParameter);
+        mParametersLabel.append(dashParameter->getLabel());
     }
 
     checkParameters();
@@ -74,7 +96,7 @@ void QTBDashboardElement::checkParameters()
 void QTBDashboardElement::beforeReplot()
 {
     for(int i= 0; i< mDashParameters.count();i++) {
-        if(mDashParameters.at(i)->configurationChanged()) {
+        if(mDashParameters.at(i)->configurationHasChanged()) {
             updateElement();
             break;
         }
@@ -89,8 +111,28 @@ void QTBDashboardElement::beforeReplot()
 void QTBDashboardElement::afterReplot()
 {
     for(int i= 0; i< mDashParameters.count();i++) {
-        mDashParameters.at(i)->propertiesChecked();
+        mDashParameters.at(i)->modificationsApplied();
     }
+}
+
+QTBDashboardElement::ElementType QTBDashboardElement::type() const
+{
+    return mType;
+}
+
+void QTBDashboardElement::setType(const ElementType &type)
+{
+    mType = type;
+}
+
+QTBParameterConfiguration::ConfigurationMode QTBDashboardElement::configurationMode() const
+{
+    return mConfigurationMode;
+}
+
+void QTBDashboardElement::setConfigurationMode(const QTBParameterConfiguration::ConfigurationMode &configurationMode)
+{
+    mConfigurationMode = configurationMode;
 }
 
 void QTBDashboardElement::initializeElement(QTBoard *dashboard)
@@ -124,18 +166,18 @@ void QTBDashboardElement::setParametersMaxCount(int parametersMaxCount)
     mParametersMaxCount = parametersMaxCount;
 }
 
-void QTBDashboardElement::saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+void QTBDashboardElement::saveConfigurations(QSettings *settings)
 {
     settings->beginWriteArray("Parameters");
 
     for(int i= 0; i< mDashParameters.count();i++) {
         settings->setArrayIndex(i);
-        mDashParameters.at(i)->saveParameterSettings(settings, mode);
+        mDashParameters.at(i)->saveParameterSettings(settings, mConfigurationMode);
     }
     settings->endArray();
 }
 
-void QTBDashboardElement::loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
+void QTBDashboardElement::loadConfigurations(QSettings *settings)
 {
     int paramCount = settings->beginReadArray("Parameters");
 
@@ -143,7 +185,7 @@ void QTBDashboardElement::loadParametersSettings(QSettings *settings, QTBParamet
         settings->setArrayIndex(i);
         QSharedPointer<QTBDashboardParameter> dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(mBoard));
         mDashParameters.append(dashParam);
-        dashParam->loadParameterSettings(settings, mode);
+        dashParam->loadParameterSettings(settings, mConfigurationMode);
     }
     settings->endArray();
 
@@ -163,7 +205,8 @@ QSharedPointer<QTBDashboardParameter> QTBDashboardElement::dashParameter(int ind
 
 void QTBDashboardElement::removeDashParameter(int index)
 {
-    mDashParameters.removeAt(index);
+    QSharedPointer<QTBDashboardParameter> dashParam = mDashParameters.takeAt(index);
+    mParametersLabel.removeAll(dashParam->getLabel());
     updateElement();
 }
 

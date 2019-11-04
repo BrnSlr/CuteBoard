@@ -4,7 +4,7 @@
 
 QTBStateDisplay::QTBStateDisplay(QTBoard *dashboard) : QTBValueDisplay(dashboard)
 {
-
+    setConfigurationMode(QTBParameterConfiguration::cmState);
 }
 
 void QTBStateDisplay::edit()
@@ -35,18 +35,6 @@ void QTBStateDisplay::saveSettings(QSettings *settings)
     settings->beginGroup("SpecDisplay");
     settings->setValue("Orientation", mOrientation);
     settings->endGroup();
-}
-
-void QTBStateDisplay::saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
-{
-    Q_UNUSED(mode)
-    QTBDashboardElement::saveParametersSettings(settings, QTBParameterConfiguration::cmState);
-}
-
-void QTBStateDisplay::loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
-{
-    Q_UNUSED(mode)
-    QTBDashboardElement::loadParametersSettings(settings, QTBParameterConfiguration::cmState);
 }
 
 void QTBStateDisplay::processNewSamples()

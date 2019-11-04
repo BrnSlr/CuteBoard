@@ -15,6 +15,10 @@ class DashboardToolbar : public QWidget
     Q_OBJECT
 
 public:
+    enum DashboardMode {
+        dmLive,
+        dmReplay
+    };
     explicit DashboardToolbar(QWidget *parent = nullptr);
     ~DashboardToolbar();
 
@@ -22,6 +26,7 @@ public:
     void loadPage(const QString& pageName);
     void setTime(const QString& time);
     void loadFirstPage();
+    void setMode(DashboardMode mode);
     void setEdition(bool edition);
 
 public slots:

@@ -5,6 +5,7 @@
 #include "dashboard/dashboard_element.h"
 #include "dashboard/elements_base/axisrect.h"
 #include "dashboard/elements_factory/elementfactory.h"
+#include "project/curve_patron_configuration.h"
 
 #define CURVEPLOT_NAME "Plot - Curves Y=f(X)"
 
@@ -38,8 +39,8 @@ public:
 
     virtual void loadSettings(QSettings *settings)Q_DECL_OVERRIDE;
     virtual void saveSettings(QSettings *settings)Q_DECL_OVERRIDE;
-    void saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
-    void loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode = QTBParameterConfiguration::cmFull) Q_DECL_OVERRIDE;
+    void saveConfigurations(QSettings *settings) Q_DECL_OVERRIDE;
+    void loadConfigurations(QSettings *settings) Q_DECL_OVERRIDE;
 
     void checkParameters() Q_DECL_OVERRIDE;
 
@@ -64,6 +65,9 @@ public:
     void updateItems();
     void updateGraphsStyle();
     void updateLayout();
+
+    void addPatron(QSharedPointer<QTBCurvePatronConfiguration> patron);
+    void removePatron(int index);
 
     QSharedPointer<QTBDashboardParameter> xParameter() const;
 
@@ -107,6 +111,8 @@ public:
     void setYThresholdsVisible(bool yThresholdsVisible);
     void setXThresholdsVisible(bool xThresholdsVisible);
 
+    QList<QSharedPointer<QTBCurvePatronConfiguration> > patrons() const;
+
 protected:
     QCPLayoutGrid *mLayout;
     QTBLayoutGrid *mYLegendLayout;
@@ -144,9 +150,11 @@ protected:
     QList<QCPItemStraightLine*> mHLines;
     QList<QCPItemStraightLine*> mVLines;
 
+    QList<QSharedPointer<QTBCurvePatronConfiguration>> mPatrons;
+
     QSharedPointer<QTBDashboardParameter> mXParameter;
 };
 
-static ElementRegister<QTBPlotXY> curveRegister(QString(CURVEPLOT_NAME), ":/elements/icons8_curve_50px.png");
+static ElementRegister<QTBPlotXY> curveRegister(QString(CURVEPLOT_NAME), QTBDashboardElement::etMultiParam,":/elements/icons8_curve_50px.png");
 
 #endif // PLOTXY_H

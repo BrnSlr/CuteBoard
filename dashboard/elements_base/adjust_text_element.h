@@ -33,6 +33,7 @@ public:
     void setBackgroundBrush(const QBrush &backgroundBrush);
     void setAdjustStrategy(const AdjustStrategy &adjustStrategy);
     void needUpdate(bool needUpdate);
+    void setBoldText(bool bold);
 
 protected:
     // property members:

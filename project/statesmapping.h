@@ -10,7 +10,7 @@ public:
     ~QTBStatesMapping();
 
     void clearStates();
-    void addState(qlonglong value, const QString& text, const QTBColorSettings&);
+    void addState(bool active, qlonglong value, const QString& text, const QTBColorSettings&);
 
     QString text(qlonglong value);
     QTBColorSettings colorSettings(qlonglong value, bool &colorIsSet);
@@ -19,13 +19,16 @@ public:
 
     QMap<qlonglong, QTBColorSettings> statesColor() const;
     QMap<qlonglong, QString> statesText() const;
+    QMap<qlonglong, bool> statesActive() const;
 
     bool modified() const;
     void setModified(bool modified);
 
+
 protected:
     QMap<qlonglong, QTBColorSettings> mStatesColor;
     QMap<qlonglong, QString> mStatesText;
+    QMap<qlonglong, bool> mStatesActive;
     bool mModified;
 };
 

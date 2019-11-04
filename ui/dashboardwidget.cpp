@@ -15,8 +15,11 @@ DashboardWidget::DashboardWidget(QWidget *parent) :
 
     ui->liveToolbar->setProject(mBoard->project());
     ui->pagePicker->setProject(mBoard->project());
+    ui->alarmsPicker->setProject(mBoard->project());
     ui->propertiesPicker->setProject(mBoard->project());
     ui->parameterPicker->setDataManager(mBoard->dataManager());
+
+    ui->tabWidget->setCurrentIndex(0);
 
     connect(ui->liveToolbar, &DashboardToolbar::pageIndexChanged, mBoard->project().data(), &QTBProject::requestPage);
     connect(ui->liveToolbar, SIGNAL(fullScreen(bool)), this, SIGNAL(fullScreenMode(bool)));
@@ -32,6 +35,7 @@ DashboardWidget::DashboardWidget(QWidget *parent) :
 
     connect(mBoard->project().data(), &QTBProject::loaded, ui->liveToolbar, &DashboardToolbar::updateList);
     connect(mBoard->project().data(), &QTBProject::loaded, ui->pagePicker, &PagePickerWidget::updateList);
+    connect(mBoard->project().data(), &QTBProject::loaded, ui->alarmsPicker, &AlarmsPickerWidget::updateList);
     connect(mBoard->project().data(), &QTBProject::loaded, ui->propertiesPicker, &PropertiesPickerWidget::updateList);
 
     connect(mBoard->project().data(), &QTBProject::pagesListUpdated, ui->liveToolbar, &DashboardToolbar::updateList);
@@ -69,6 +73,11 @@ void DashboardWidget::updateTime(const QDateTime& time)
 QTBoard *DashboardWidget::board() const
 {
     return mBoard;
+}
+
+void DashboardWidget::setMode(DashboardToolbar::DashboardMode mode)
+{
+    ui->liveToolbar->setMode(mode);
 }
 
 QSharedPointer<QTBProject> DashboardWidget::project() const

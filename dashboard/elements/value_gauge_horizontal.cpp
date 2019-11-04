@@ -168,6 +168,8 @@ void QTBValueGaugeHorizontal::updateSizeConstraints()
         if(mRect.width() < singleElementSize.width())
             labelSize.setWidth(mRect.width());
 
+        mTextLabel->setMinimumSize(labelSize.width(), 0.3 * labelSize.height());
+        mTextUnit->setMinimumSize(labelSize.width(), 0.2 * labelSize.height());
         mTextLabel->setMaximumSize(labelSize.width(), 0.3 * labelSize.height());
         mTextUnit->setMaximumSize(labelSize.width(), 0.2 * labelSize.height());
         mTextValue->setMaximumSize(labelSize.width(), mRect.height());
@@ -176,6 +178,8 @@ void QTBValueGaugeHorizontal::updateSizeConstraints()
         if(mRect.height() > singleElementSize.height() / 2.0)
             labelSize.setHeight(singleElementSize.height() / 2.0);
 
+        mTextLabel->setMinimumSize(labelSize.width(), 0.6 * labelSize.height());
+        mTextUnit->setMinimumSize(labelSize.width(), 0.4 * labelSize.height());
         mTextLabel->setMaximumSize(labelSize.width(), 0.6 * labelSize.height());
         mTextUnit->setMaximumSize(labelSize.width(), 0.4 * labelSize.height());
     }

@@ -5261,6 +5261,7 @@ protected:
 
     friend class QCustomPlot;
     friend class QCPLegend;
+    friend class QTBGraph;
 };
 Q_DECLARE_METATYPE(QCPGraph::LineStyle)
 

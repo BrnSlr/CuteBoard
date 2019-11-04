@@ -28,6 +28,6 @@ public:
     virtual void setAxisGridVisible(bool axisGridVisible) Q_DECL_OVERRIDE;
 };
 
-static ElementRegister<QTBValueGaugeHorizontal> hgaugeRegister(QString(HGAUGE_NAME), ":/elements/icons8_hgauge_50px.png");
+static ElementRegister<QTBValueGaugeHorizontal> hgaugeRegister(QString(HGAUGE_NAME),QTBDashboardElement::etSingleParam, ":/elements/icons8_hgauge_50px.png");
 
 #endif // VALUEHORIZONTALGAUGE_H

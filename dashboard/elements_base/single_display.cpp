@@ -11,24 +11,19 @@ QTBSingleDisplay::QTBSingleDisplay(QTBoard *dashboard) :
 {
     setMargins(QMargins(2,2,2,2));
     setSizeConstraintRect(scrOuterRect);
+    setConfigurationMode(QTBParameterConfiguration::cmValue);
 }
 
 void QTBSingleDisplay::clearElement()
 {
     
-        delete mTextValue;
-    
-        delete mTextUnit;
-    
-        delete mTextLabel;
-    
-        delete mEmptyElementBottom;
-    
-        delete mEmptyElementTop;
-    
-        delete mSubLayout;
-    
-        delete mMainLayout;
+    delete mTextValue;
+    delete mTextUnit;
+    delete mTextLabel;
+    delete mEmptyElementBottom;
+    delete mEmptyElementTop;
+    delete mSubLayout;
+    delete mMainLayout;
 }
 
 void QTBSingleDisplay::initializeElement(QTBoard *dashboard)
@@ -37,19 +32,22 @@ void QTBSingleDisplay::initializeElement(QTBoard *dashboard)
         QTBDashboardElement::initializeElement(dashboard);
 
         mTextLabel = new QTBAdjustTextElement(dashboard);
+        QFont f = mTextLabel->font();
+        f.setBold(true);
+        mTextLabel->setFont(f);
         mTextLabel->setTextFlags(Qt::AlignCenter);
         mTextLabel->setMaxPointSize(11);
-        mTextLabel->setMinPointSize(6);
+        mTextLabel->setMinPointSize(1);
 
         mTextUnit = new QTBAdjustTextElement(dashboard);
         mTextUnit->setTextFlags(Qt::AlignCenter);
         mTextUnit->setMaxPointSize(8);
-        mTextUnit->setMinPointSize(5);
-        mTextUnit->setTextColor(dashboard->frontColor());
+        mTextUnit->setMinPointSize(1);
+//        mTextUnit->setTextColor(dashboard->frontColor());
 
         mTextValue = new QTBAdjustTextElement(dashboard);
         mTextValue->setMaxPointSize(24);
-        mTextValue->setMinPointSize(6);
+        mTextValue->setMinPointSize(1);
         mTextValue->setMargins(QMargins(2,2,2,2));
         mTextValue->setTextFlags(Qt::AlignCenter);
 
@@ -165,20 +163,6 @@ void QTBSingleDisplay::updateSizeConstraints()
 void QTBSingleDisplay::checkSizeAndVisibility()
 {
 
-}
-
-void QTBSingleDisplay::saveParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
-{
-    Q_UNUSED(mode)
-    QTBDashboardElement::saveParametersSettings(settings, QTBParameterConfiguration::cmValue);
-}
-
-void QTBSingleDisplay::loadParametersSettings(QSettings *settings, QTBParameterConfiguration::ConfigurationModule mode)
-{
-    Q_UNUSED(mode)
-    QTBDashboardElement::loadParametersSettings(settings, QTBParameterConfiguration::cmValue);
-
-    updateElement();
 }
 
 bool QTBSingleDisplay::headerVisible() const

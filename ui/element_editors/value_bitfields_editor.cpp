@@ -100,7 +100,7 @@ void QTBValueBitfieldsEditor::updateElement()
         if(dashParam) {
             if(!mPropertiesWidget->isConnected()) {
                 mPropertiesWidget->updateParameterSettings(dashParam->exclusiveParameterConfiguration());
-                dashParam->disconnectProperties();
+                dashParam->disconnectSharedConfiguration();
             } /*else {
                 dashParam->setConnected(true);
             }*/

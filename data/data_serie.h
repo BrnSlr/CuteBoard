@@ -2,17 +2,38 @@
 #define DATASERIE_H
 
 #include "data_sample.h"
-#include "data_common.h"
+#include <QDebug>
+
+#define SERIE_MAX_POINTS 1024
 
 class QTBDataSerie : public QCPDataContainer<QTBDataSample>
 {
 public:
-    QTBDataSerie(quint16 periodMsMax = DEFAULT_DATA_PERIOD_MS_MAX,
-                 quint16 historySec = DEFAULT_DATA_HISTORY_SEC):
-        QCPDataContainer<QTBDataSample>()
+    QTBDataSerie():
+        QCPDataContainer<QTBDataSample>(),
+        mHistoryAutoResize(true),
+        mCounter(SERIE_MAX_POINTS)
     {
-        preallocateGrow(1000 * historySec /periodMsMax );
+        preallocateGrow(SERIE_MAX_POINTS);
     }
+
+    void addSample(double timestamp, QTBDataValue value)
+    {
+        QTBDataSample sample(mCounter, timestamp, value);
+        mCounter++;
+
+        add(sample);
+        removeBefore(mCounter - SERIE_MAX_POINTS);
+    }
+
+    void setHistoryAutoResize(bool historyAutoResize)
+    {
+        mHistoryAutoResize = historyAutoResize;
+    }
+
+private:
+    bool mHistoryAutoResize;
+    quint32 mCounter;
 };
 
 Q_DECLARE_TYPEINFO(QTBDataSerie, Q_MOVABLE_TYPE);

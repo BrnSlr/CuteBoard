@@ -1,12 +1,12 @@
 #ifndef PROPERTIESTREEWIDGET_H
 #define PROPERTIESTREEWIDGET_H
 
-#include <QTableWidget>
+#include <QTreeWidget>
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QMimeData>
 
-class PropertiesTableWidget : public QTableWidget
+class PropertiesTableWidget : public QTreeWidget
 {
     Q_OBJECT
 public:
