@@ -228,7 +228,7 @@ void QTBParameterConfiguration::load(QSettings *settings, ConfigurationMode mode
             settings->beginGroup("Plottable");
 
             setScatterShape(QCPScatterStyle::ScatterShape(settings->value("ScatterShape").toInt()));
-            setScatterSize(settings->value("ScatterShape").toInt());
+            setScatterSize(settings->value("ScatterSize").toInt());
 
             settings->beginGroup("Graph");
             mGraphBrush = BrushStyle(settings->value("Brush").toInt());
@@ -245,7 +245,7 @@ void QTBParameterConfiguration::load(QSettings *settings, ConfigurationMode mode
             settings->beginGroup("Plottable");
 
             setScatterShape(QCPScatterStyle::ScatterShape(settings->value("ScatterShape").toInt()));
-            setScatterSize(settings->value("ScatterShape").toInt());
+            setScatterSize(settings->value("ScatterSize").toInt());
 
             settings->beginGroup("Curve");
             mCurveLineStyle = QCPCurve::LineStyle(settings->value("LineStyle").toInt());
@@ -257,7 +257,7 @@ void QTBParameterConfiguration::load(QSettings *settings, ConfigurationMode mode
             settings->beginGroup("Plottable");
 
             setScatterShape(QCPScatterStyle::ScatterShape(settings->value("ScatterShape").toInt()));
-            setScatterSize(settings->value("ScatterShape").toInt());
+            setScatterSize(settings->value("ScatterSize").toInt());
 
             settings->beginGroup("Graph");
             mGraphBrush = BrushStyle(settings->value("Brush").toInt());

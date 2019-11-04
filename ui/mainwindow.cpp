@@ -112,6 +112,7 @@ void MainWindow::showSettingsPage()
 
 void MainWindow::fullScreen(bool fullscreen)
 {
+#ifdef __linux__
     setWindowState(windowState() ^ Qt::WindowFullScreen);
     if(fullscreen) {
         mNormalGeometry = geometry();
@@ -120,6 +121,24 @@ void MainWindow::fullScreen(bool fullscreen)
         setGeometry(mNormalGeometry);
         ui->toolBar->show();
     }
+#elif _WIN32
+    if(fullscreen) {
+        mMaximized = isMaximized();
+        setVisible(false);
+        showFullScreen();
+        ui->toolBar->hide();
+        setVisible(true);
+    } else {
+        setVisible(false);
+        if (mMaximized)
+            showMaximized();
+        else
+            showNormal();
+        ui->toolBar->show();
+        setVisible(true);
+    }
+#endif
+
 }
 
 void MainWindow::projectSelected()

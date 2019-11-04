@@ -35,6 +35,7 @@ protected:
 private:
     Ui::MainWindow *ui;
 
+    bool mMaximized;
     QRect mNormalGeometry;
     QAction *mHomeAction;
     QAction *mDesignAction;

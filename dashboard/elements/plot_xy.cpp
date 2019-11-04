@@ -176,7 +176,7 @@ void QTBPlotXY::loadConfigurations(QSettings *settings)
         settings->beginGroup("XParameter");
 
         mXParameter =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(mBoard));
-        mXParameter->loadParameterSettings(settings, mConfigurationMode);
+        mXParameter->loadParameterSettings(settings, QTBParameterConfiguration::cmCurveX);
 
         auto legend = new QTBValueDisplay(mBoard);
         legend->initializeElement(mBoard);
@@ -199,7 +199,7 @@ void QTBPlotXY::loadConfigurations(QSettings *settings)
         settings->setArrayIndex(i);
         QSharedPointer<QTBDashboardParameter> dashParam =  QSharedPointer<QTBDashboardParameter>(new QTBDashboardParameter(mBoard));
         mDashParameters.append(dashParam);
-        dashParam->loadParameterSettings(settings, mConfigurationMode);
+        dashParam->loadParameterSettings(settings, QTBParameterConfiguration::cmCurveY);
 
         auto legend = new QTBValueDisplay(mBoard);
         legend->initializeElement(mBoard);
@@ -284,14 +284,14 @@ void QTBPlotXY::saveConfigurations(QSettings *settings)
         if(mDashParameters.at(i) != mXParameter) {
             count ++;
             settings->setArrayIndex(count);
-            mDashParameters.at(i)->saveParameterSettings(settings, mConfigurationMode);
+            mDashParameters.at(i)->saveParameterSettings(settings, QTBParameterConfiguration::cmCurveY);
         }
     }
     settings->endArray();
 
     if(mXParameter) {
         settings->beginGroup("XParameter");
-        mXParameter->saveParameterSettings(settings, mConfigurationMode);
+        mXParameter->saveParameterSettings(settings, QTBParameterConfiguration::cmCurveX);
         settings->endGroup();
     }
 }

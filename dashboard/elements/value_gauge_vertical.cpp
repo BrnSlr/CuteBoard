@@ -45,7 +45,7 @@ void QTBValueGaugeVertical::initializeElement(QTBoard *dashboard)
         mAxisRect->axis(QCPAxis::atLeft)->setTickLabelPadding(3);
 
         mAxisRect->axis(QCPAxis::atBottom)->setRange(0.5, 1.5);
-        mAxisRect->setMinimumMargins(QMargins(50, 15, 50, 15));
+        mAxisRect->setMinimumMargins(QMargins(15, 15, 15, 15));
 
         mBar = new QCPBars(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atRight));
         mBar->setWidth(1);

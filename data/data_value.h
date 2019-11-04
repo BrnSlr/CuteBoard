@@ -79,10 +79,10 @@ public:
     };
 
     QTBDataValue ()                                {mValue.ui32  = 0;    mType=TYPE_UINT32;     }
-    QTBDataValue (qint8   v)                       {mValue.s_i8.int8      = v;    mType=TYPE_INT8;       }
-    QTBDataValue (quint8  v)                       {mValue.s_ui8.uint8    = v;    mType=TYPE_UINT8;      }
-    QTBDataValue (qint16  v)                       {mValue.s_i16.int16    = v;    mType=TYPE_INT16;      }
-    QTBDataValue (quint16 v)                       {mValue.s_ui16.uint16  = v;    mType=TYPE_UINT16;     }
+    QTBDataValue (qint8   v)    {mValue.ui32  = 0;    mValue.s_i8.int8      = v;    mType=TYPE_INT8;       }
+    QTBDataValue (quint8  v)    {mValue.ui32  = 0;    mValue.s_ui8.uint8    = v;    mType=TYPE_UINT8;      }
+    QTBDataValue (qint16  v)    {mValue.ui32  = 0;    mValue.s_i16.int16    = v;    mType=TYPE_INT16;      }
+    QTBDataValue (quint16 v)    {mValue.ui32  = 0;    mValue.s_ui16.uint16  = v;    mType=TYPE_UINT16;     }
     QTBDataValue (qint32  v)                       {mValue.i32   = v;    mType=TYPE_INT32;      }
     QTBDataValue (quint32 v)                       {mValue.ui32  = v;    mType=TYPE_UINT32;     }
     QTBDataValue (float   v)                       {mValue.f     = v;    mType=TYPE_FLOAT;      }
