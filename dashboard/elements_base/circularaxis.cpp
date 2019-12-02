@@ -5,7 +5,7 @@ QTBCircularAxis::QTBCircularAxis(QTBoard *dashboard) :
     mAngle(135),
     mAngleRad(mAngle/180.0*M_PI),
     mSpanAngle(270),
-    mBasePen(QPen(dashboard->frontColor(), 1, Qt::SolidLine, Qt::SquareCap)),
+    mBasePen(QPen(dashboard->frontColor(), 1, Qt::SolidLine, Qt::RoundCap)),
     // tick labels:
     //mTickLabelPadding(0), in label painter
     mTickLabels(true),
@@ -18,12 +18,12 @@ QTBCircularAxis::QTBCircularAxis(QTBoard *dashboard) :
     // ticks and subticks:
     mTicks(true),
     mSubTicks(true),
-    mTickLengthIn(5),
+    mTickLengthIn(6),
     mTickLengthOut(0),
-    mSubTickLengthIn(2),
+    mSubTickLengthIn(3),
     mSubTickLengthOut(0),
-    mTickPen(QPen(dashboard->frontColor(), 1, Qt::SolidLine, Qt::SquareCap)),
-    mSubTickPen(QPen(dashboard->frontColor(), 1, Qt::SolidLine, Qt::SquareCap)),
+    mTickPen(QPen(dashboard->frontColor(), 1, Qt::SolidLine, Qt::RoundCap)),
+    mSubTickPen(QPen(dashboard->frontColor(), 1, Qt::SolidLine, Qt::RoundCap)),
     // scale and range:
     mRange(0, mSpanAngle),
     mRangeReversed(false),
@@ -32,8 +32,8 @@ QTBCircularAxis::QTBCircularAxis(QTBoard *dashboard) :
     mLabelPainter(dashboard)
 {
 
-    mTicker->setTickCount(5);
-    mTicker->setTickStepStrategy(QCPAxisTicker::tssMeetTickCount);
+    mTicker->setTickCount(6);
+    mTicker->setTickStepStrategy(QCPAxisTicker::tssReadability);
     setAntialiased(true);
     setLayer(QLatin1String("axes"));
     setMinimumMargins(QMargins(30, 30, 30, 0));

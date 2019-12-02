@@ -6,6 +6,7 @@ QTBPage::QTBPage(const QString& pageName,
                  const QString& pageDirectory,
                  QObject *parent) :
     QObject(parent),
+    mPageDirectory(pageDirectory),
     mColumnCount(24),
     mRowCount(24),
     mSingleElementColumnCount(2),
@@ -41,7 +42,7 @@ void QTBPage::loadPageInformation()
 void QTBPage::savePageInformation()
 {
     QSettings settings(mSettingsPath, QSettings::IniFormat);
-    settings.clear();
+    //    settings.clear();
     settings.sync();
 
     settings.beginGroup("Global");
@@ -84,10 +85,12 @@ void QTBPage::loadPageElements(QTBoard *board)
             board->dashboardLayout()->addElement(element,
                                                  elementRect);
 
+            if(element) {
             settings.beginGroup("ElementConfigurations");
             element->loadConfigurations(&settings);
             settings.endGroup();
         }
+    }
     }
 
     settings.endArray();
@@ -191,6 +194,11 @@ void QTBPage::setSingleElementRowCount(int singleElementRowCount)
     mSingleElementRowCount = singleElementRowCount;
 }
 
+QString QTBPage::backgroundPath()
+{
+    return mPageDirectory + QDir::separator() + mBackground;
+}
+
 QString QTBPage::background() const
 {
     return mBackground;
@@ -199,4 +207,14 @@ QString QTBPage::background() const
 void QTBPage::setBackground(const QString &background)
 {
     mBackground = background;
+}
+
+QString QTBPage::pageDirectory() const
+{
+    return mPageDirectory;
+}
+
+void QTBPage::setPageDirectory(const QString &pageDirectory)
+{
+    mPageDirectory = pageDirectory;
 }

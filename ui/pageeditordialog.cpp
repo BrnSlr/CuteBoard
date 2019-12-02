@@ -8,6 +8,7 @@ PageEditorDialog::PageEditorDialog(bool editPage, QWidget *parent) :
     ui->setupUi(this);
     ui->lineEdit->setEnabled(!editPage);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    connect(ui->backgroundLineEdit, SIGNAL(textEdited(QString)), this, SLOT(loadImage()));
 }
 
 PageEditorDialog::~PageEditorDialog()
@@ -89,6 +90,20 @@ void PageEditorDialog::on_checkBox_stateChanged(int arg1)
     }
 }
 
+void PageEditorDialog::loadImage()
+{
+    if(!ui->backgroundLineEdit->text().isEmpty()) {
+        QPixmap pic(ui->backgroundLineEdit->text());
+
+        // get label dimensions
+        int w = ui->backgroundPreview->width();
+        int h = ui->backgroundPreview->height();
+
+        // set a scaled pixmap to a w x h window keeping its aspect ratio
+        ui->backgroundPreview->setPixmap(pic.scaled(w,h,Qt::KeepAspectRatio));
+    }
+}
+
 
 void PageEditorDialog::setColumnCount(int column)
 {
@@ -123,14 +138,7 @@ void PageEditorDialog::on_backgroundPushButton_clicked()
                                                     tr("Open Image"), QDir::homePath(), tr("Image Files (*.png *.jpg *.bmp)"));
     if(!fileName.isEmpty()) {
         ui->backgroundLineEdit->setText(fileName);
-        QPixmap pic(fileName);
-
-        // get label dimensions
-        int w = ui->backgroundPreview->width();
-        int h = ui->backgroundPreview->height();
-
-        // set a scaled pixmap to a w x h window keeping its aspect ratio
-        ui->backgroundPreview->setPixmap(pic.scaled(w,h,Qt::KeepAspectRatio));
+        loadImage();
     }
 }
 

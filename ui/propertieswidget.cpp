@@ -623,6 +623,7 @@ void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::Config
         ui->listWidget->addItem("States");
         ui->listWidget->addItem("Bitfields");
         ui->itemsStyleWidget->setVisible(true);
+        ui->brushStyleComboBox->setEnabled(true);
         break;
     case QTBParameterConfiguration::cmValue:
         ui->listWidget->addItem("Style");
@@ -637,6 +638,7 @@ void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::Config
         ui->listWidget->addItem("Style");
         ui->listWidget->addItem("Thresholds");
         ui->itemsStyleWidget->setVisible(false);
+        ui->brushStyleComboBox->setEnabled(false);
         ui->curveWidget->setVisible(false);
         ui->graphWidget->setVisible(false);
         break;
@@ -644,6 +646,7 @@ void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::Config
         ui->listWidget->addItem("Style");
         ui->listWidget->addItem("Thresholds");
         ui->itemsStyleWidget->setVisible(true);
+        ui->brushStyleComboBox->setEnabled(false);
         ui->curveWidget->setVisible(true);
         ui->graphWidget->setVisible(false);
         break;
@@ -651,6 +654,7 @@ void PropertiesWidget::setPropertiesMode(const QTBParameterConfiguration::Config
         ui->listWidget->addItem("Style");
         ui->listWidget->addItem("Thresholds");
         ui->itemsStyleWidget->setVisible(true);
+        ui->brushStyleComboBox->setEnabled(true);
         ui->curveWidget->setVisible(false);
         ui->graphWidget->setVisible(true);
         break;

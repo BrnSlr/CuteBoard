@@ -21,11 +21,14 @@ public:
 public slots:
     void updateParameterList();
 private slots:
+    void changeListDisplay();
     void searchString(const QString& str);
+    void searchAndHide(const QString& str, QTreeWidgetItem *item);
 
 private:
     Ui::ParameterPickerWidget *ui;
     QSharedPointer<QTBDataManager> mDataManager;
+    bool mTreeMode;
 };
 
 #endif // PARAMETERPICKERWIDGET_H

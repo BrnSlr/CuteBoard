@@ -107,11 +107,10 @@ void QTBCurvesTimeEditor::updateElement()
                 if(!mPropertiesWidgets.at(i)->isConnected()) {
                     mPropertiesWidgets.at(i)->updateParameterSettings(dashParam->exclusiveParameterConfiguration());
                     dashParam->disconnectSharedConfiguration();
-                } /*else {
-                    dashParam->setConnected(true);
-                }*/
             }
         }
+        }
+        mDisplay->updateElement();
     }
 }
 

@@ -20,6 +20,7 @@ public slots:
     void startDataSource();
     void stopDataSource();
     void updateStatus();
+    void selectWorkingDir();
 
 private:
     Ui::QTBSettingsDialog *ui;

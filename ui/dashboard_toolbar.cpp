@@ -29,7 +29,7 @@ DashboardToolbar::DashboardToolbar(QWidget *parent) :
     });
 
     QAction *actionFullScreen = new QAction(QIcon(":/icons8_full_screen_32px.png"), QString(""));
-    actionFullScreen->setShortcut(QKeySequence::FullScreen);
+    actionFullScreen->setShortcut(QKeySequence(tr("F11")));
     actionFullScreen->setCheckable(true);
     actionFullScreen->setChecked(false);
     ui->fullScreenButton->setDefaultAction(actionFullScreen);

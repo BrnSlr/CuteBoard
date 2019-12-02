@@ -11,13 +11,19 @@
 QTBoard::QTBoard(QWidget *parent) : QCustomPlot (parent),
     mBoardColor(QColor(50,65,75)),
     mBackColor(QColor(25,35,45)),
-    mFrontColor(QColor(120,130,140))
+    mFrontColor(QColor(120,130,140)),
+    mFirstReplot(true)
 {
+    layer(QLatin1String("grid"))->setMode(QCPLayer::lmBuffered);
+    layer(QLatin1String("main"))->setMode(QCPLayer::lmBuffered);
+    layer(QLatin1String("axes"))->setMode(QCPLayer::lmBuffered);
+
     setAcceptDrops(true);
 
     mProject = QSharedPointer<QTBProject>(new QTBProject());
 
     setOpenGl(false);
+    //    setAntialiasedElement(QCP::aeAll, true);
     setPlottingHints(QCP::phCacheLabels|QCP::phImmediateRefresh|QCP::phFastPolylines);
     plotLayout()->clear();
 
@@ -126,6 +132,10 @@ void QTBoard::droppedDataParameter(QDropEvent *event)
         auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
                                               | QDialogButtonBox::Cancel);
 
+        connect(elemntPicker, &ElementPickerWidget::elementDoubleClicked, [&dial, elemntPicker](){
+            if(!elemntPicker->selectedElement().isEmpty())
+                dial.accept();
+        });
         connect(buttonBox, &QDialogButtonBox::accepted, [&dial, elemntPicker](){
             if(!elemntPicker->selectedElement().isEmpty())
                 dial.accept();
@@ -188,9 +198,35 @@ void QTBoard::update(QDateTime time)
         //        QElapsedTimer timer;
         //        timer.start();
 
+        if(mFullReplot) {
         replot();
+            mFullReplot = false;
+        } else {
+            updateLayout();
+            layer(QLatin1String("grid"))->replot();
+            layer(QLatin1String("main"))->replot();
+            layer(QLatin1String("axes"))->replot();
+        }
 
-        //        qDebug() << "The update operation took (milliseconds)\t" << mProject->currentPageName() << "\t" << timer.elapsed();
+        for(int i=0; i< mDashboardLayout->elementCount();i++) {
+            if (auto *el = qobject_cast<QTBDashboardElement*>(mDashboardLayout->elementAt(i))) {
+                el->afterReplot();
+            }
+        }
+
+//        double newSample = timer.nsecsElapsed();
+//        if(mFirstReplot)
+//        {
+//            // everybody forgets the initial condition *sigh*
+//            mReplotTime = newSample;
+//            mFirstReplot = false;
+//        }
+//        else
+//        {
+//            mReplotTime = (newSample*0.1) + (mReplotTime*0.9);
+//        }
+
+//        qDebug() << "The update operation took (milliseconds)\t" << mProject->currentPageName() << "\t" << mReplotTime;
     }
 }
 
@@ -209,11 +245,11 @@ QColor QTBoard::randomColor()
     double currentHueAngle = 137.50776 * mColorIndex;
     int h, s, v;
     //scale hue to between mHueMax and mHueMin
-    h = ( fmod( currentHueAngle, 360.0 ) );
+    h = int( fmod( currentHueAngle, 360.0 ) );
     s = 127;
     v = 242;
     mColorIndex++;
-    return QColor::fromHsv( (int)(h), s, v );
+    return QColor::fromHsv( h, s, v );
 }
 
 
@@ -420,7 +456,7 @@ void QTBoard::loadPage()
         mDashboardLayout->setSingleElementRowCount(page->singleElementRowCount());
         mDashboardLayout->setSingleElementColumnCount(page->singleElementColumnCount());
 
-        QPixmap pic(page->background());
+        QPixmap pic(page->backgroundPath());
         setBackground(pic, true, Qt::IgnoreAspectRatio);
 
         page->loadPageElements(this);

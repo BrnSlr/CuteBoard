@@ -7,7 +7,7 @@ QTBBitfieldsMapping::QTBBitfieldsMapping() :
 {
     for(int i=0; i< 32; i++) {
         mBitLogics.append(true);
-        mBitDescriptions.append(QString("Bit %1 - No Description").arg(i));
+        mBitDescriptions.append(QString("#Bit %1").arg(i, 2, 10, QLatin1Char('0')));
     }
 }
 

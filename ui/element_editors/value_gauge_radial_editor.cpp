@@ -64,6 +64,7 @@ QTBValueGaugeRadialEditor::QTBValueGaugeRadialEditor(QTBValueGaugeRadial *displa
         ui->rangeComboBox->setCurrentIndex(mGauge->axisScale());
         ui->rangeMinDoubleSpinBox->setValue(mGauge->axisMinCustom());
         ui->rangeMaxDoubleSpinBox->setValue(mGauge->axisMaxCustom());
+        ui->styleComboBox->setCurrentIndex(mGauge->radialStyle());
 
         QSharedPointer<QTBDashboardParameter> dashParam = mGauge->dashParameter(0);
         if(dashParam) {
@@ -104,6 +105,7 @@ void QTBValueGaugeRadialEditor::updateElement()
         mGauge->setTransparentBackground(ui->transparentCheckBox->isChecked());
         mGauge->setAxisTicksVisible(ui->ticksCheckBox->isChecked());
         mGauge->setAxisLabelsVisible(ui->labelsCheckBox->isChecked());
+        mGauge->setRadialStyle(QTBGaugeRect::GaugeStyle(ui->styleComboBox->currentIndex()));
 
         mGauge->setAxisScale(QTBValueGaugeRadial::AxisScale(ui->rangeComboBox->currentIndex()));
         mGauge->setAxisMinCustom(ui->rangeMinDoubleSpinBox->value());

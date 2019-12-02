@@ -45,6 +45,8 @@ public:
     QColor frontColor() const;
     QColor randomColor();
 
+    void fullReplot() { mFullReplot = true;}
+
 signals:
     void timeUpdate(QDateTime);
 
@@ -81,6 +83,10 @@ protected:
     bool mLoadingPage{false};
     bool mPageModified{false};
     bool mLiveDataRefreshEnabled{true};
+    bool mFullReplot{true};
+
+    double mReplotTime;
+    bool mFirstReplot;
 };
 
 #endif // DASHBOARD_H

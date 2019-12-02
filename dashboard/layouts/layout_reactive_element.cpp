@@ -2,7 +2,8 @@
 
 QTBLayoutReactiveElement::QTBLayoutReactiveElement(QTBoard *dashboard) :
     QCPLayoutElement (dashboard),
-    mTransparentBackground(false)
+    mTransparentBackground(false),
+    mBoard(dashboard)
 {
 }
 
@@ -30,6 +31,7 @@ void QTBLayoutReactiveElement::initializeElement(QTBoard *dashboard)
 {
     if(!parentPlot())
         initializeParentPlot(dashboard);
+    mBoard = dashboard;
     setLayer(QLatin1String("elements_background"));
 
     mBackgroundColor = dashboard->backColor();
@@ -55,6 +57,11 @@ void QTBLayoutReactiveElement::setBrush(const QBrush &brush)
     mBrush = brush;
 }
 
+void QTBLayoutReactiveElement::update(QCPLayoutElement::UpdatePhase phase)
+{
+    QCPLayoutElement::update(phase);
+}
+
 bool QTBLayoutReactiveElement::transparentBackground() const
 {
     return mTransparentBackground;
@@ -62,6 +69,9 @@ bool QTBLayoutReactiveElement::transparentBackground() const
 
 void QTBLayoutReactiveElement::setTransparentBackground(bool transparentBackground)
 {
-    mTransparentBackground = transparentBackground;
+    if(transparentBackground != mTransparentBackground) {
+        mTransparentBackground = transparentBackground;
+        mBoard->fullReplot();
+    }
 }
 

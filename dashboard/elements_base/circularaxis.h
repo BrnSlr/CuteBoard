@@ -108,6 +108,7 @@ protected:
     QSharedPointer<QCPAxisTicker> mTicker;
     QCPLabelPainterPrivate mLabelPainter;
 
+    friend class QTBGaugeRect;
 };
 
 #endif // CIRCULARGAUGE_H

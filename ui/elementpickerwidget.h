@@ -18,6 +18,9 @@ public:
 
     QString selectedElement();
 
+signals:
+    void elementDoubleClicked();
+
 private:
     Ui::ElementPickerWidget *ui;
 };

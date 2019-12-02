@@ -51,6 +51,9 @@
    <property name="orientation">
     <enum>Qt::Vertical</enum>
    </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
    <property name="floatable">
     <bool>false</bool>
    </property>

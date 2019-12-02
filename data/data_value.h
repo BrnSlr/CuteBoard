@@ -96,6 +96,8 @@ public:
     float       float_value     () {return mValue.f;      }
 
     QString toString(int precision) {
+        if(precision < 0 )
+            precision = 0;
         switch(mType) {
         case TYPE_FLOAT:
             return QString::number(double(mValue.f), 'f', precision);
@@ -133,6 +135,26 @@ public:
             return double(mValue.ui32);
         }
         return qQNaN();
+    }
+
+    quint32 toUint32() {
+        switch(mType) {
+        case TYPE_FLOAT:
+            return quint32(mValue.f);
+        case TYPE_INT8:
+            return quint32(mValue.s_i8.int8);
+        case TYPE_UINT8:
+            return quint32(mValue.s_ui8.uint8);
+        case TYPE_INT16:
+            return quint32(mValue.s_i16.int16);
+        case TYPE_UINT16:
+            return quint32(mValue.s_ui16.uint16);
+        case TYPE_INT32:
+            return quint32(mValue.i32);
+        case TYPE_UINT32:
+            return quint32(mValue.ui32);
+        }
+        return 0;
     }
 
     u_data      mValue;

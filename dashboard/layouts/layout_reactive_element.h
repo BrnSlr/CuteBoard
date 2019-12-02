@@ -24,6 +24,7 @@ public:
     void setTransparentBackground(bool transparentBackground);
 
     void setBrush(const QBrush &brush);
+    virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
 
 protected:
     void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
@@ -33,6 +34,7 @@ protected:
     bool mTransparentBackground;
     QColor mBackgroundColor;
     QBrush mBrush;
+    QTBoard *mBoard;
 };
 
 #endif // LAYOUTELEMENT_H

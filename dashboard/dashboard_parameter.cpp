@@ -7,7 +7,10 @@
 QTBDashboardParameter::QTBDashboardParameter(QTBoard *board):
     mParameterId(0),
     mBoard(board),
-    mParameterConfigurationIsShared(false)
+    mParameterConfigurationIsShared(false),
+    mSharedParameterConfiguration(new QTBParameterConfiguration ()),
+    mExclusiveParameterConfiguration(new QTBParameterConfiguration ()),
+    mParameterConfiguration(new QTBParameterConfiguration ())
 {
 
 }
@@ -154,7 +157,7 @@ QString QTBDashboardParameter::getStateString() const
     QString text;
     if(mParameterId > 0) {
         if(mParameterConfiguration->statesSettingsRef().active()) {
-            text = mParameterConfiguration->statesSettingsRef().text(mSample.value().uint32_value());
+            text = mParameterConfiguration->statesSettingsRef().text(mSample.value().toUint32());
         }
     }
 
@@ -209,7 +212,7 @@ void QTBDashboardParameter::update(UpdateMode mode)
                 QTBColorSettings cs;
 
                 if(mParameterConfiguration->statesSettingsRef().active()) {
-                    cs = mParameterConfiguration->statesSettingsRef().colorSettings( mSample.value().uint32_value(),validColor);
+                    cs = mParameterConfiguration->statesSettingsRef().colorSettings( mSample.value().toUint32(),validColor);
                     if(validColor) {
                         mColor = cs.color();
                         mForegroundColor = cs.foregroundColor();
@@ -273,6 +276,13 @@ void QTBDashboardParameter::loadParameterSettings(QSettings *settings, QTBParame
             mExclusiveParameterConfiguration.detach();
             mParameterConfigurationIsShared = true;
             mParameterConfiguration = mSharedParameterConfiguration;
+        } else {
+            qDebug() << "Cant find Param Config" << paramlabel << properties;
+            mParameterConfigurationIsShared = false;
+            mLabel = paramlabel;
+            mExclusiveParameterConfiguration->setLabel(mLabel);
+            mParameterConfiguration = mExclusiveParameterConfiguration;
+            mParameterConfiguration->defaultColorSettingsRef().setColor(mBoard->randomColor());
         }
     } else {
         if(!mExclusiveParameterConfiguration)

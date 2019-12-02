@@ -127,7 +127,7 @@ void QTBAlarmPanel::updateElement()
 
 void QTBAlarmPanel::update(QCPLayoutElement::UpdatePhase phase)
 {
-    QTBLayoutReactiveElement::update(phase);
+    QTBDashboardElement::update(phase);
 
     if(phase == upLayout) {
         mMainLayout->setOuterRect(rect());
@@ -188,6 +188,7 @@ void QTBAlarmPanel::processNewSamples()
 
                     if(mDashParametersSecondary.at(i)) {
                         if(mDashParametersSecondary.at(i)->getParameterId() > 0) {
+                            mDashParametersSecondary.at(i)->update(QTBDashboardParameter::umValueOnly);
                             mTextElements.at(elementIndex)->setText(QString("     %1 : %2").arg(mDashParametersSecondary.at(i)->getLabel()).arg(mDashParametersSecondary.at(i)->getValueString()));
                             mTextElements.at(elementIndex)->setTextColor(mAlarmConfiguration->colors().at(i));
                             mTextElements.at(elementIndex)->setVisible(true);

@@ -669,8 +669,13 @@ QToolBar {
 
 QToolBar QToolButton{
     background-color: #32414B;
+    color: #BECDD7;
+    width: 50px;
 }
 
+QToolBar QToolButton:disabled {
+    color: #283741;
+}
 QToolBar::handle:horizontal {
     width: 6px;
     image: url(:/qss_icons/rc/Hmovetoolbar.png);
@@ -694,7 +699,7 @@ QToolBar::separator:vertical {
 QToolButton#qt_toolbar_ext_button {
     background: #32414B;
     border: 0px;
-    color: #F0F0F0;
+    color: #BECDD7;
     image: url(:/qss_icons/rc/right_arrow.png);
 }
 

@@ -38,6 +38,7 @@ public:
     virtual void processNewSamples() {}
     virtual void processHistoricalSamples() {}
     virtual void updateElement() {}
+    virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
     virtual void checkParameters();
 
     int parametersMaxCount() const;
@@ -57,12 +58,10 @@ public:
     ElementType type() const;
     void setType(const ElementType &type);
 
-public slots:
     virtual void beforeReplot();
     virtual void afterReplot();
 
 protected:
-    QTBoard *mBoard;
     int mParametersMaxCount;
     ElementType mType;
     QList<QSharedPointer<QTBDashboardParameter>> mDashParameters;

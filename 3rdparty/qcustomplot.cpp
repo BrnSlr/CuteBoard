@@ -1191,7 +1191,7 @@ void QCPLayer::replot()
             mParentPlot->update();
         } else
             qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
-    } else if (mMode == lmLogical)
+    } else
         mParentPlot->replot();
 }
 

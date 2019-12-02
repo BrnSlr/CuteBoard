@@ -550,6 +550,7 @@ void QTBPlotXY::removeXParameter()
 
 void QTBPlotXY::updateElement()
 {
+    updateLegendSize();
     updateLayout();
 
     for(int i=0;i<mYLegendLayout->elementCount();i++) {
@@ -572,6 +573,20 @@ void QTBPlotXY::updateElement()
 
 void QTBPlotXY::processNewSamples()
 {
+    for(int i=0;i<mYLegendLayout->elementCount();i++) {
+        auto  element = qobject_cast<QTBValueDisplay *>(mYLegendLayout->elementAt(i));
+        if(element) {
+            element->processNewSamples();
+        }
+    }
+
+    for(int i=0;i<mXLegendLayout->elementCount();i++) {
+        auto  element = qobject_cast<QTBValueDisplay *>(mXLegendLayout->elementAt(i));
+        if(element) {
+            element->processNewSamples();
+        }
+    }
+
     if(mXParameter)
     {
         for(int i=0; i< parametersCount(); i++) {
@@ -596,6 +611,7 @@ void QTBPlotXY::updateLegendSize()
 {
     QSizeF size = mBoard->dashboardLayout()->singleElementSize();
 
+    if(mYLegendVisible) {
     mYLegendLayout->setMinimumSize(size.width(), 50);
     for(int i=1; i< mYLegendLayout->elementCount() - 1;i++) {
         if( qobject_cast<QTBValueDisplay *>(mYLegendLayout->elementAt(i))) {
@@ -603,13 +619,16 @@ void QTBPlotXY::updateLegendSize()
             mYLegendLayout->elementAt(i)->setMaximumSize(size.width(), size.height());
         }
     }
+    }
 
+    if(mXLegendVisible) {
     mXLegendLayout->setMinimumSize(50, size.height());
     auto  element = qobject_cast<QTBValueDisplay *>(mXLegendLayout->elementAt(1));
     if(element) {
         element->setMinimumSize(0, size.height());
         element->setMaximumSize(size.width(), size.height());
     }
+}
 }
 
 void QTBPlotXY::updateAxes()
@@ -723,17 +742,16 @@ void QTBPlotXY::updateItems()
     for(int i=0; i< parametersCount(); i++) {
         QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(i);
         if(dashParam) {
-            const QString layer(QStringLiteral("overlay"));
 
             QColor color = dashParam->parameterConfiguration()->defaultColorSettingsRef().color();
             QPen linePen(color);
-            linePen.setStyle(Qt::DotLine);
+            linePen.setStyle(Qt::DashLine);
             linePen.setWidth(0);
 
             QCPItemStraightLine* vLine  = new QCPItemStraightLine(mBoard);
             vLine->setClipAxisRect(mAxisRect);
             vLine->setClipToAxisRect(true);
-            vLine->setLayer(layer);
+            vLine->setLayer(QLatin1String("axes"));
             vLine->point1->setType(QCPItemPosition::ptPlotCoords);
             vLine->point2->setType(QCPItemPosition::ptPlotCoords);
             vLine->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
@@ -745,7 +763,7 @@ void QTBPlotXY::updateItems()
             QCPItemStraightLine* hLine  = new QCPItemStraightLine(mBoard);
             hLine->setClipAxisRect(mAxisRect);
             hLine->setClipToAxisRect(true);
-            hLine->setLayer(layer);
+            hLine->setLayer(QLatin1String("axes"));
             hLine->point1->setType(QCPItemPosition::ptPlotCoords);
             hLine->point2->setType(QCPItemPosition::ptPlotCoords);
             hLine->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
@@ -767,6 +785,7 @@ void QTBPlotXY::updateItems()
                          lowIt != lowThr.end(); ++lowIt) {
 
                         auto l = new QCPItemStraightLine(mBoard);
+                        l->setLayer(QLatin1String("grid"));
                         l->point1->setType(QCPItemPosition::ptPlotCoords);
                         l->point2->setType(QCPItemPosition::ptPlotCoords);
                         l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
@@ -788,6 +807,7 @@ void QTBPlotXY::updateItems()
                          highIt != highThr.end(); ++highIt) {
 
                         auto l = new QCPItemStraightLine(mBoard);
+                        l->setLayer(QLatin1String("grid"));
                         l->point1->setType(QCPItemPosition::ptPlotCoords);
                         l->point2->setType(QCPItemPosition::ptPlotCoords);
                         l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
@@ -817,6 +837,7 @@ void QTBPlotXY::updateItems()
                      lowIt != lowThr.end(); ++lowIt) {
 
                     auto l = new QCPItemStraightLine(mBoard);
+                    l->setLayer(QLatin1String("grid"));
                     l->point1->setType(QCPItemPosition::ptPlotCoords);
                     l->point2->setType(QCPItemPosition::ptPlotCoords);
                     l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
@@ -839,12 +860,13 @@ void QTBPlotXY::updateItems()
                      highIt != highThr.end(); ++highIt) {
 
                     auto l = new QCPItemStraightLine(mBoard);
+                    l->setLayer(QLatin1String("grid"));
                     l->point1->setType(QCPItemPosition::ptPlotCoords);
                     l->point2->setType(QCPItemPosition::ptPlotCoords);
                     l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
                     l->point2->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
-                    l->point1->setCoords(lowIt.key(), 0.0);
-                    l->point2->setCoords(lowIt.key(), 1.0);
+                    l->point1->setCoords(highIt.key(), 0.0);
+                    l->point2->setCoords(highIt.key(), 1.0);
                     l->setClipAxisRect(mAxisRect);
                     l->setClipToAxisRect(true);
                     QColor color = highIt.value().color();
@@ -892,6 +914,8 @@ void QTBPlotXY::updateLayout()
     mLayout->take(mAxisRect);
     mLayout->take(mYLegendLayout);
     mLayout->take(mXLegendLayout);
+    mXLegendLayout->setVisible(false);
+    mYLegendLayout->setVisible(false);
     mLayout->simplify();
 
     mLayout->expandTo(2,2);
@@ -1026,18 +1050,18 @@ void QTBPlotXY::updateDashboardParameters(QTBDashboardParameter::UpdateMode mode
 
 void QTBPlotXY::update(QCPLayoutElement::UpdatePhase phase)
 {
-    QTBLayoutReactiveElement::update(phase);
+    QTBDashboardElement::update(phase);
 
     switch (phase)
     {
     case upPreparation:
     {
         updateAxes();
+        updateLegendSize();
         break;
     }
     case upLayout:
     {
-        updateLegendSize();
         mLayout->setOuterRect(rect());
         break;
     }
@@ -1059,7 +1083,9 @@ bool QTBPlotXY::xThresholdsVisible() const
 
 void QTBPlotXY::setXThresholdsVisible(bool xThresholdsVisible)
 {
+    if(mXThresholdsVisible != xThresholdsVisible) {
     mXThresholdsVisible = xThresholdsVisible;
+}
 }
 
 QList<QSharedPointer<QTBCurvePatronConfiguration> > QTBPlotXY::patrons() const
@@ -1074,7 +1100,9 @@ bool QTBPlotXY::yThresholdsVisible() const
 
 void QTBPlotXY::setYThresholdsVisible(bool yThresholdsVisible)
 {
+    if(mYThresholdsVisible != yThresholdsVisible) {
     mYThresholdsVisible = yThresholdsVisible;
+}
 }
 
 double QTBPlotXY::xAxisMinCustom() const
@@ -1084,7 +1112,9 @@ double QTBPlotXY::xAxisMinCustom() const
 
 void QTBPlotXY::setXAxisMinCustom(double xAxisMinCustom)
 {
+    if(mXAxisMinCustom != xAxisMinCustom) {
     mXAxisMinCustom = xAxisMinCustom;
+}
 }
 
 double QTBPlotXY::xAxisMaxCustom() const
@@ -1094,7 +1124,9 @@ double QTBPlotXY::xAxisMaxCustom() const
 
 void QTBPlotXY::setXAxisMaxCustom(double xAxisMaxCustom)
 {
+    if(mXAxisMaxCustom != xAxisMaxCustom) {
     mXAxisMaxCustom = xAxisMaxCustom;
+}
 }
 
 double QTBPlotXY::yAxisMinCustom() const
@@ -1104,7 +1136,9 @@ double QTBPlotXY::yAxisMinCustom() const
 
 void QTBPlotXY::setYAxisMinCustom(double yAxisMinCustom)
 {
+    if(mYAxisMinCustom != yAxisMinCustom) {
     mYAxisMinCustom = yAxisMinCustom;
+}
 }
 
 double QTBPlotXY::yAxisMaxCustom() const
@@ -1114,7 +1148,9 @@ double QTBPlotXY::yAxisMaxCustom() const
 
 void QTBPlotXY::setYAxisMaxCustom(double yAxisMaxCustom)
 {
+    if(mYAxisMaxCustom != yAxisMaxCustom) {
     mYAxisMaxCustom = yAxisMaxCustom;
+}
 }
 
 int QTBPlotXY::xAxisHistory() const
@@ -1124,7 +1160,9 @@ int QTBPlotXY::xAxisHistory() const
 
 void QTBPlotXY::setXAxisHistory(int xAxisHistory)
 {
+    if(mXAxisHistory != xAxisHistory) {
     mXAxisHistory = xAxisHistory;
+}
 }
 
 bool QTBPlotXY::xAxisGridVisible() const
@@ -1134,8 +1172,10 @@ bool QTBPlotXY::xAxisGridVisible() const
 
 void QTBPlotXY::setXAxisGridVisible(bool xAxisGridVisible)
 {
+    if(mXAxisGridVisible != xAxisGridVisible) {
     mXAxisGridVisible = xAxisGridVisible;
     mAxisRect->axis(QCPAxis::atBottom)->grid()->setVisible(mXAxisGridVisible);
+}
 }
 
 bool QTBPlotXY::xAxisLabelsVisible() const
@@ -1145,8 +1185,10 @@ bool QTBPlotXY::xAxisLabelsVisible() const
 
 void QTBPlotXY::setXAxisLabelsVisible(bool xAxisLabelsVisible)
 {
+    if(mXAxisLabelsVisible != xAxisLabelsVisible) {
     mXAxisLabelsVisible = xAxisLabelsVisible;
     mAxisRect->axis(QCPAxis::atBottom)->setTickLabels(mXAxisLabelsVisible);
+}
 }
 
 bool QTBPlotXY::xAxisTicksVisible() const
@@ -1156,6 +1198,7 @@ bool QTBPlotXY::xAxisTicksVisible() const
 
 void QTBPlotXY::setXAxisTicksVisible(bool xAxisTicksVisible)
 {
+    if(mXAxisTicksVisible != xAxisTicksVisible) {
     mXAxisTicksVisible = xAxisTicksVisible;
     if(mXAxisTicksVisible) {
         mAxisRect->axis(QCPAxis::atBottom)->setBasePen(QPen(mBoard->frontColor()));
@@ -1167,6 +1210,7 @@ void QTBPlotXY::setXAxisTicksVisible(bool xAxisTicksVisible)
         mAxisRect->axis(QCPAxis::atBottom)->setSubTickPen(Qt::NoPen);
     }
 }
+}
 
 bool QTBPlotXY::yAxisGridVisible() const
 {
@@ -1175,8 +1219,11 @@ bool QTBPlotXY::yAxisGridVisible() const
 
 void QTBPlotXY::setYAxisGridVisible(bool yAxisGridVisible)
 {
+    if(mYAxisGridVisible != yAxisGridVisible) {
     mYAxisGridVisible = yAxisGridVisible;
     mAxisRect->axis(QCPAxis::atLeft)->grid()->setVisible(mYAxisGridVisible);
+        mAxisRect->axis(QCPAxis::atLeft)->grid()->setVisible(mYAxisGridVisible);
+    }
 }
 
 bool QTBPlotXY::yAxisLabelsVisible() const
@@ -1186,8 +1233,10 @@ bool QTBPlotXY::yAxisLabelsVisible() const
 
 void QTBPlotXY::setYAxisLabelsVisible(bool yAxisLabelsVisible)
 {
+    if(yAxisLabelsVisible != mYAxisLabelsVisible) {
     mYAxisLabelsVisible = yAxisLabelsVisible;
     mAxisRect->axis(QCPAxis::atLeft)->setTickLabels(mYAxisLabelsVisible);
+}
 }
 
 bool QTBPlotXY::yAxisTicksVisible() const
@@ -1197,6 +1246,7 @@ bool QTBPlotXY::yAxisTicksVisible() const
 
 void QTBPlotXY::setYAxisTicksVisible(bool yAxisTicksVisible)
 {
+    if(yAxisTicksVisible != mYAxisTicksVisible) {
     mYAxisTicksVisible = yAxisTicksVisible;
     if(mYAxisTicksVisible) {
         mAxisRect->axis(QCPAxis::atLeft)->setBasePen(QPen(mBoard->frontColor()));
@@ -1208,6 +1258,7 @@ void QTBPlotXY::setYAxisTicksVisible(bool yAxisTicksVisible)
         mAxisRect->axis(QCPAxis::atLeft)->setSubTickPen(Qt::NoPen);
     }
 }
+}
 
 QTBPlotXY::YLegendPosition QTBPlotXY::yLegendPosition() const
 {
@@ -1216,8 +1267,9 @@ QTBPlotXY::YLegendPosition QTBPlotXY::yLegendPosition() const
 
 void QTBPlotXY::setYLegendPosition(const YLegendPosition &yLegendPosition)
 {
+    if(yLegendPosition != mYLegendPosition) {
     mYLegendPosition = yLegendPosition;
-    updateElement();
+    }
 }
 
 QTBPlotXY::XLegendPosition QTBPlotXY::xLegendPosition() const
@@ -1227,8 +1279,9 @@ QTBPlotXY::XLegendPosition QTBPlotXY::xLegendPosition() const
 
 void QTBPlotXY::setXLegendPosition(const XLegendPosition &xLegendPosition)
 {
+    if(xLegendPosition != mXLegendPosition) {
     mXLegendPosition = xLegendPosition;
-    updateElement();
+    }
 }
 
 QTBPlotXY::AxisScale QTBPlotXY::yAxisScale() const
@@ -1238,7 +1291,9 @@ QTBPlotXY::AxisScale QTBPlotXY::yAxisScale() const
 
 void QTBPlotXY::setYAxisScale(const AxisScale &yAxisScale)
 {
+    if(yAxisScale != mYAxisScale) {
     mYAxisScale = yAxisScale;
+}
 }
 
 QTBPlotXY::AxisScale QTBPlotXY::xAxisScale() const
@@ -1248,7 +1303,9 @@ QTBPlotXY::AxisScale QTBPlotXY::xAxisScale() const
 
 void QTBPlotXY::setXAxisScale(const AxisScale &xAxisScale)
 {
+    if(xAxisScale != mXAxisScale) {
     mXAxisScale = xAxisScale;
+}
 }
 
 bool QTBPlotXY::yLegendVisible() const
@@ -1258,8 +1315,9 @@ bool QTBPlotXY::yLegendVisible() const
 
 void QTBPlotXY::setYLegendVisible(bool yLegendVisible)
 {
+    if(yLegendVisible != mYLegendVisible) {
     mYLegendVisible = yLegendVisible;
-    updateElement();
+    }
 }
 
 bool QTBPlotXY::xLegendVisible() const
@@ -1269,8 +1327,9 @@ bool QTBPlotXY::xLegendVisible() const
 
 void QTBPlotXY::setXLegendVisible(bool xLegendVisible)
 {
+    if(xLegendVisible != mXLegendVisible) {
     mXLegendVisible = xLegendVisible;
-    updateElement();
+    }
 }
 
 int QTBPlotXY::defaultWidth()

@@ -9,6 +9,15 @@ QTBSettingsDialog::QTBSettingsDialog(QTBoard *board, QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QSettings settings(QApplication::applicationDirPath() + QDir::separator() + QApplication::applicationName() + QString(".ini"),
+                       QSettings::IniFormat);
+    QString wDir = settings.value(QString("WorkingDir")).toString();
+    if(!wDir.isEmpty())
+        ui->workingDirectoryLineEdit->setText(wDir);
+
+    ui->workingDirectoryLineEdit->setEnabled(false);
+    connect(ui->workingDirectoryPushButton, &QPushButton::clicked, this, &QTBSettingsDialog::selectWorkingDir);
+
     if(mBoard->dataManager()) {
         QMap<QString, DataSource *> sources = mBoard->dataManager()->dataSources();
 
@@ -93,5 +102,20 @@ void QTBSettingsDialog::updateStatus()
         }
 
         ui->tableWidget->resizeColumnToContents(0);
+    }
+}
+
+void QTBSettingsDialog::selectWorkingDir()
+{
+    QString dirPath = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                        QDir::currentPath(),
+                                                        QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
+
+    if(!dirPath.isEmpty()&& !dirPath.isNull()){
+
+        ui->workingDirectoryLineEdit->setText(dirPath);
+        QSettings settings(QApplication::applicationDirPath() + QDir::separator() + QApplication::applicationName() + QString(".ini"),
+                           QSettings::IniFormat);
+        settings.setValue(QString("WorkingDir"), dirPath);
     }
 }

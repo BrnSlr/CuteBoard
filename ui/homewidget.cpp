@@ -15,6 +15,8 @@ HomeWidget::HomeWidget(QWidget *parent) :
 
     ui->titleProjects->setFont(titleFont);
     ui->titleProjects->setStyleSheet("color : rgb(160,175,185);");
+    ui->titleWDir->setFont(titleFont);
+    ui->titleWDir->setStyleSheet("color : rgb(160,175,185);");
 
     ui->clickToChangeWDir->setStyleSheet("color : rgb(20,140,210);");
     QFont fc = ui->clickToChangeWDir->font();
@@ -27,8 +29,19 @@ HomeWidget::HomeWidget(QWidget *parent) :
     ui->clickToCreateNewPro->setFont(fc);
     ui->clickToCreateNewPro->setMargin(10);
 
-    QString dir = QDir::currentPath();
-    ui->workingDirLineEdit->setText(dir);
+    QSettings settings(QApplication::applicationDirPath() + QDir::separator() + QApplication::applicationName() + QString(".ini"),
+                       QSettings::IniFormat);
+
+    QString wDir = settings.value(QString("WorkingDir")).toString();
+
+    if(!wDir.isEmpty())
+        wDir = QDir::currentPath();
+
+    QFileInfo outDir(wDir);
+    if((!outDir.exists()) || (!outDir.isDir()))
+        wDir = QDir::currentPath();
+
+    ui->workingDirLineEdit->setText(wDir);
 }
 
 HomeWidget::~HomeWidget()
@@ -64,7 +77,7 @@ void HomeWidget::loadWorkingDirectory()
     int idRegular = QFontDatabase::addApplicationFont(":Roboto-Light.ttf");
     QString familyRegular = QFontDatabase::applicationFontFamilies(idRegular).at(0);
     QFont proFont = QFont(familyRegular);
-    proFont.setPointSize(16);
+    proFont.setPointSize(14);
 
     if(dirInfo.isDir() && dirInfo.isWritable()) {
 
@@ -127,7 +140,7 @@ void HomeWidget::createProject()
             int idRegular = QFontDatabase::addApplicationFont(":Roboto-Light.ttf");
             QString familyRegular = QFontDatabase::applicationFontFamilies(idRegular).at(0);
             QFont proFont = QFont(familyRegular);
-            proFont.setPointSize(16);
+            proFont.setPointSize(14);
             proFont.setUnderline(true);
 
             QStringList list;

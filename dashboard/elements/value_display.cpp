@@ -31,18 +31,6 @@ void QTBValueDisplay::buildLayout()
             mSubLayout->addElement(mTextLabel);
             mSubLayout->addElement(mTextUnit);
             break;
-        case doHorizontal:
-            mMainLayout->setFillOrder(QCPLayoutGrid::foColumnsFirst);
-            mTextLabel->setTextFlags(Qt::AlignCenter);
-            mTextUnit->setTextFlags(Qt::AlignCenter);
-            mTextValue->setTextFlags(Qt::AlignCenter);
-            mSubLayout->addElement(mEmptyElementTop);
-            mSubLayout->addElement(mTextLabel);
-            mSubLayout->addElement(mTextUnit);
-            mSubLayout->addElement(mEmptyElementBottom);
-            mSubLayout->setRowStretchFactor(0,0.01);
-            mSubLayout->setRowStretchFactor(3,0.01);
-            break;
     }
 
     mSubLayout->setRowSpacing(0);
@@ -103,18 +91,6 @@ void QTBValueDisplay::updateSizeConstraints()
     if(mHeaderVisible) {
         QSizeF singleElementSize = mBoard->dashboardLayout()->singleElementSize();
         QSizeF labelSize = singleElementSize;
-
-        if(mOrientation == doHorizontal) {
-            labelSize.setHeight(mRect.height());
-            if(mRect.height() > singleElementSize.height() / 2.0)
-                labelSize.setHeight(singleElementSize.height() / 2.0);
-
-            mTextLabel->setMinimumSize(labelSize.width(), 0.6 * labelSize.height());
-            mTextUnit->setMinimumSize(labelSize.width(), 0.4 * labelSize.height());
-            mTextLabel->setMaximumSize(labelSize.width(), 0.6 * labelSize.height());
-            mTextUnit->setMaximumSize(labelSize.width(), 0.4 * labelSize.height());
-        } else {
-
             if(mRect.height() < singleElementSize.height()) {
                 mTextLabel->setMinimumSize(mRect.width(), 0.3 * mRect.height());
                 mTextUnit->setMinimumSize(mRect.width(), 0.2 * mRect.height());
@@ -128,7 +104,6 @@ void QTBValueDisplay::updateSizeConstraints()
             }
         }
     }
-}
 
 void QTBValueDisplay::checkSizeAndVisibility()
 {
@@ -137,39 +112,6 @@ void QTBValueDisplay::checkSizeAndVisibility()
             if(mTextUnit->pointSize() > mTextLabel->pointSize())
                 mTextUnit->setPointSize(mTextLabel->pointSize());
         }
-//        else {
-//            if(!mTextLabel->visible()) {
-
-//                mTextUnit->setVisible(false);
-
-//                if(mOrientation == doHorizontal) {
-//                    mTextLabel->setMinimumSize(0,0);
-//                    mTextUnit->setMinimumSize(0,0);
-//                    mTextLabel->setMaximumSize(0,0);
-//                    mTextUnit->setMaximumSize(0,0);
-//                } else {
-//                    mTextLabel->setMinimumSize(mRect.width(), 0);
-//                    mTextUnit->setMinimumSize(mRect.width(), 0);
-//                    mTextLabel->setMaximumSize(mRect.width(), 0);
-//                    mTextUnit->setMaximumSize(mRect.width(), 0);
-//                }
-
-//                mSubLayout->needUpdate(true);
-//                mMainLayout->needUpdate(true);
-
-//            }  else if(!mTextUnit->visible()) {
-//                if(mOrientation == doHorizontal) {
-//                    mTextUnit->setMinimumSize(0,0);
-//                    mTextUnit->setMaximumSize(0,0);
-//                } else {
-//                    mTextUnit->setMinimumSize(mRect.width(),0);
-//                    mTextUnit->setMaximumSize(mRect.width(), 0);
-//                }
-
-//                mSubLayout->needUpdate(true);
-//                mMainLayout->needUpdate(true);
-//            }
-//        }
     }
 }
 

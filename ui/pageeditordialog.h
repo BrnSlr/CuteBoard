@@ -18,7 +18,7 @@ class PageEditorDialog : public QDialog
 
 public:
     explicit PageEditorDialog(bool editPage, QWidget *parent = nullptr);
-    ~PageEditorDialog();
+    ~PageEditorDialog() Q_DECL_OVERRIDE;
 
     QString getName();
     int getColumnCount();
@@ -41,7 +41,7 @@ public:
 private slots:
     void on_densitySpinBox_valueChanged(int arg1);
     void on_checkBox_stateChanged(int arg1);
-
+    void loadImage();
     void on_backgroundPushButton_clicked();
 
 protected:

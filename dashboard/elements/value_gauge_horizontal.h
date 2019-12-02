@@ -22,6 +22,7 @@ public:
     void processNewSamples() Q_DECL_OVERRIDE;
     virtual void updateSizeConstraints() Q_DECL_OVERRIDE;
     virtual void checkSizeAndVisibility() Q_DECL_OVERRIDE;
+    virtual void updateElement() Q_DECL_OVERRIDE;
 
     virtual void setAxisTicksVisible(bool axisTicksVisible) Q_DECL_OVERRIDE;
     virtual void setAxisLabelsVisible(bool axisLabelsVisible) Q_DECL_OVERRIDE;

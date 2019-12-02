@@ -9,8 +9,8 @@ public:
 
     enum AdjustStrategy {
         asHide,
-        asElide,
-        asElideAndHide
+        asElide/*,
+        asElideAndHide*/
     };
 
     QTBAdjustTextElement(QTBoard *dashboard);

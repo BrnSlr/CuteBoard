@@ -40,9 +40,6 @@ MOC_DIR = $$DESTDIR/.moc
 RCC_DIR = $$DESTDIR/.qrc
 UI_DIR = $$DESTDIR/.ui
 
-PRECOMPILED_HEADER = precompiled_header.h
-CONFIG += precompile_header
-
 RESOURCES += \
         ../resources/qdarkstyle/style.qrc \
         ../resources/fonts/fonts.qrc \
@@ -97,6 +94,7 @@ HEADERS += \
     ../dashboard/dashboard_element.h \
     ../dashboard/elements_base/elementhighlightedrect.h \
     ../dashboard/elements_base/elementresizehandle.h \
+    ../dashboard/elements_base/gaugerect.h \
     ../dashboard/elements_base/graph.h \
     ../dashboard/elements_base/labelpainter.h \
     ../dashboard/layouts/layout_list.h \
@@ -175,6 +173,7 @@ SOURCES += \
     ../dashboard/dashboard_element.cpp \
     ../dashboard/elements_base/elementhighlightedrect.cpp \
     ../dashboard/elements_base/elementresizehandle.cpp \
+    ../dashboard/elements_base/gaugerect.cpp \
     ../dashboard/elements_base/graph.cpp \
     ../dashboard/elements_base/labelpainter.cpp \
     ../dashboard/layouts/layout_list.cpp \

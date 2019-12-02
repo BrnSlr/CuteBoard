@@ -143,7 +143,7 @@ void QTBValueBitfields::buildLayout()
     mLayout->addElement(mBitsLayout);
     mLayout->addElement(mAxisRect);
     mLayout->setColumnStretchFactor(0,1);
-    mLayout->setColumnStretchFactor(1,3);
+    mLayout->setColumnStretchFactor(1,1);
 
     mSubLayout->setRowSpacing(0);
     mMainLayout->setRowSpacing(0);
@@ -319,7 +319,7 @@ void QTBValueBitfields::updateElement()
         QColor color = dashParam->parameterConfiguration()->defaultColorSettingsRef().color();
         for(int i=31; i>=0; i--) {
             mGraphs.at(i)->setBrush(color);
-            mBitLabels.at(i)->setText(QString("%1/%2 %3").arg(31-i, 2, 10, QChar('0'))
+            mBitLabels.at(i)->setText(QString("[%1] %2")
                                       .arg(dashParam->getBitLogic(31-i))
                                       .arg(dashParam->getBitDescription(31-i)));
         }

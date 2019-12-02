@@ -103,6 +103,17 @@ void PagePickerWidget::on_editButton_clicked()
             QString pageName = item->text();
             QTBPage *page = mProject->page(pageName);
             if(page) {
+
+                QMessageBox msgBox;
+                msgBox.setText("Before editing the page, it must be saved.");
+                msgBox.setInformativeText("Do you want to save the changes?");
+                msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard );
+                msgBox.setDefaultButton(QMessageBox::Save);
+                int ret = msgBox.exec();
+                if(ret == QMessageBox::Save)
+                {
+                    if(pageName == mProject->currentPageName())
+                        emit saveCurrentPage();
                 PageEditorDialog editor(true, this);
                 editor.setName(page->name());
                 editor.setDescription(page->description());
@@ -114,6 +125,8 @@ void PagePickerWidget::on_editButton_clicked()
                 editor.setCustomLayout(page->customGridSize());
                 if(editor.exec() == QDialog::Accepted) {
                     page->setDescription(editor.getDescription());
+                        QDir dir(page->pageDirectory());
+                        editor.setBackground(dir.relativeFilePath(editor.getBackground()));
                     page->setBackground(editor.getBackground());
                     page->setRowCount(editor.getRowCount());
                     page->setColumnCount(editor.getColumnCount());
@@ -121,7 +134,11 @@ void PagePickerWidget::on_editButton_clicked()
                     page->setSingleElementColumnCount(editor.getSingleElementColumnCount());
                     page->setCustomGridSize(editor.getCustomLayout());
                     page->savePageInformation();
-                    emit pageModified(page->name());
+
+                        if(pageName == mProject->currentPageName()) {
+                            mProject->requestPage(page->name());
+                        }
+                    }
                 }
             }
         }

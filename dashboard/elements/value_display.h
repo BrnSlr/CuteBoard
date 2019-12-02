@@ -12,7 +12,6 @@ class QTBValueDisplay : public QTBSingleDisplay
 public:
     enum DisplayOrientation {
         doVerticalAlignCenter,
-        doHorizontal,
         doVerticalAlignLeftRight
     };
 

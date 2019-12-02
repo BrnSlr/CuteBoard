@@ -4,7 +4,6 @@
 
 QTBDashboardElement::QTBDashboardElement(QTBoard *dashboard):
     QTBLayoutReactiveElement (dashboard),
-    mBoard(nullptr),
     mParametersMaxCount(1),
     mConfigurationMode(QTBParameterConfiguration::cmFull)
 {
@@ -76,6 +75,14 @@ void QTBDashboardElement::updateDashboardParameters(QTBDashboardParameter::Updat
     }
 }
 
+void QTBDashboardElement::update(QCPLayoutElement::UpdatePhase phase)
+{
+     QTBLayoutReactiveElement::update(phase);
+
+     if(phase == upPreparation)
+         beforeReplot();
+}
+
 void QTBDashboardElement::checkParameters()
 {
     for(int i= 0; i< mDashParameters.count();i++) {
@@ -137,12 +144,6 @@ void QTBDashboardElement::setConfigurationMode(const QTBParameterConfiguration::
 
 void QTBDashboardElement::initializeElement(QTBoard *dashboard)
 {
-    if(!mBoard)
-        mBoard = dashboard;
-
-    connect(mBoard, &QTBoard::beforeReplot, this, &QTBDashboardElement::beforeReplot);
-    connect(mBoard, &QTBoard::afterReplot, this, &QTBDashboardElement::afterReplot);
-
     QTBLayoutReactiveElement::initializeElement(dashboard);
 }
 

@@ -297,6 +297,8 @@ void QTBLayoutReactive::draggedElement(QDragMoveEvent *event)
         event->ignore();
         mHighlightRect->setVisible(false);
     }
+
+    mBoard->fullReplot();
     mParentPlot->layer(QLatin1String("overlay"))->replot();
 }
 
@@ -321,6 +323,7 @@ void QTBLayoutReactive::droppedElement(QDropEvent *event)
     }
     event->accept();
     mHighlightRect->setVisible(false);
+    mBoard->fullReplot();
     mParentPlot->layer(QLatin1String("overlay"))->replot();
 
 }
@@ -349,14 +352,6 @@ void QTBLayoutReactive::addElement(QCPLayoutElement *element, int col, int row, 
                 height = cuteEl->defaultHeight();
             else
                 height = 1;
-        }
-
-        if((col < 0) || (col + width > mColumnCount)) {
-            qDebug() << QString("Requested column/width (%1/%2) exceeds layout dimension (%3/%4)").arg(col).arg(width).arg(mColumnCount).arg(mRowCount);
-        }
-
-        if((row < 0) || (row + height > mRowCount)) {
-            qDebug() << QString("Requested row/height (%1/%2) exceeds layout dimension (%3/%4)").arg(row).arg(height).arg(mColumnCount).arg(mRowCount);
         }
 
         QPointF adjustedPoint;
@@ -390,6 +385,20 @@ void QTBLayoutReactive::addElement(QCPLayoutElement *element, int col, int row, 
                 break;
         }
         height = adjustedHeight;
+
+        if((col < 0) || (col + width > mColumnCount)) {
+            qDebug() << QString("Requested column/width (%1/%2) exceeds layout dimension (%3/%4)").arg(col).arg(width).arg(mColumnCount).arg(mRowCount);
+            delete element;
+            element = nullptr;
+            return;
+        }
+
+        if((row < 0) || (row + height > mRowCount)) {
+            qDebug() << QString("Requested row/height (%1/%2) exceeds layout dimension (%3/%4)").arg(row).arg(height).arg(mColumnCount).arg(mRowCount);
+            delete element;
+            element = nullptr;
+            return;
+        }
 
         if (element->layout()) // remove from old layout first
             element->layout()->take(element);
@@ -555,7 +564,7 @@ void QTBLayoutReactive::mousePress(QMouseEvent *event)
                         mHighlightRect->setOuterRect(mDraggedElementInitalRect);
 
                         mDragging = true;
-                        mParentPlot->replot();
+                        mParentPlot->replot(QCustomPlot::rpQueuedReplot);
                     }
                     return;
                 }
@@ -697,6 +706,7 @@ void QTBLayoutReactive::mouseMove(QMouseEvent *event)
                     updateElementMap();
                 }
             }
+            mBoard->fullReplot();
             mParentPlot->layer(QLatin1String("overlay"))->replot();
         } else {
 
@@ -736,6 +746,7 @@ void QTBLayoutReactive::mouseRelease(QMouseEvent *event)
 
 
             connect(animation, &QPropertyAnimation::valueChanged, [=](){
+                mBoard->fullReplot();
                 mParentPlot->layer(QLatin1String("overlay"))->replot();
             });
 
@@ -743,6 +754,8 @@ void QTBLayoutReactive::mouseRelease(QMouseEvent *event)
                 mHighlightRect->setVisible(false);
                 mDragging = false;
                 mDraggedElementIndex = -1;
+
+                mBoard->fullReplot();
                 mParentPlot->layer(QLatin1String("overlay"))->replot();
             });
 

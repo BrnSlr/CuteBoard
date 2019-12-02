@@ -38,18 +38,20 @@ void QTBSingleDisplay::initializeElement(QTBoard *dashboard)
         mTextLabel->setTextFlags(Qt::AlignCenter);
         mTextLabel->setMaxPointSize(11);
         mTextLabel->setMinPointSize(1);
+        mTextLabel->setLayer(QLatin1String("main"));
 
         mTextUnit = new QTBAdjustTextElement(dashboard);
         mTextUnit->setTextFlags(Qt::AlignCenter);
         mTextUnit->setMaxPointSize(8);
         mTextUnit->setMinPointSize(1);
-//        mTextUnit->setTextColor(dashboard->frontColor());
+        mTextUnit->setLayer(QLatin1String("main"));
 
         mTextValue = new QTBAdjustTextElement(dashboard);
         mTextValue->setMaxPointSize(24);
         mTextValue->setMinPointSize(1);
         mTextValue->setMargins(QMargins(2,2,2,2));
         mTextValue->setTextFlags(Qt::AlignCenter);
+        mTextValue->setLayer(QLatin1String("main"));
 
         mEmptyElementBottom = new QCPLayoutElement(dashboard);
         mEmptyElementBottom->setMinimumSize(0.1,0.1);
@@ -60,10 +62,12 @@ void QTBSingleDisplay::initializeElement(QTBoard *dashboard)
         mSubLayout = new QTBLayoutGrid();
         mSubLayout->initializeParentPlot(dashboard);
         mSubLayout->setParentLayerable(this);
+        mSubLayout->setLayer(QLatin1String("main"));
 
         mMainLayout = new QTBLayoutGrid();
         mMainLayout->initializeParentPlot(dashboard);
         mMainLayout->setParentLayerable(this);
+        mMainLayout->setLayer(QLatin1String("main"));
 
         buildLayout();
     }
@@ -81,7 +85,7 @@ void QTBSingleDisplay::edit()
 
 void QTBSingleDisplay::update(QCPLayoutElement::UpdatePhase phase)
 {
-    QTBLayoutReactiveElement::update(phase);
+    QTBDashboardElement::update(phase);
 
     if(phase == upLayout) {
         updateSizeConstraints();

@@ -46,7 +46,6 @@ public:
     bool connected() const;
     void disconnectAlarmConfig();
 
-public slots:
     void beforeReplot() Q_DECL_OVERRIDE;
     void afterReplot() Q_DECL_OVERRIDE;
 

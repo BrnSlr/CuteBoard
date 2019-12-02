@@ -143,9 +143,7 @@ void QTBCurvesXYEditor::updateElement()
                 if(!mPropertiesWidgets.at(i)->isConnected()) {
                     mPropertiesWidgets.at(i)->updateParameterSettings(dashParam->exclusiveParameterConfiguration());
                     dashParam->disconnectSharedConfiguration();
-                }/* else {
-                    dashParam->setConnected(true);
-                }*/
+                }
             }
         }
 
@@ -153,10 +151,10 @@ void QTBCurvesXYEditor::updateElement()
             if(!mXPropertiesWidget->isConnected()) {
                 mXPropertiesWidget->updateParameterSettings(mDisplay->xParameter()->exclusiveParameterConfiguration());
                 mDisplay->xParameter()->disconnectSharedConfiguration();
-            } /*else {
-                mDisplay->xParameter()->setConnected(true);
-            }*/
         }
+        }
+
+        mDisplay->updateElement();
     }
 }
 

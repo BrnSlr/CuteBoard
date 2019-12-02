@@ -52,6 +52,11 @@ MainWindow::MainWindow(QWidget *parent) :
     empty->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Expanding);
     ui->toolBar->addWidget(empty);
 
+    QFrame* line = new QFrame();
+    line->setFrameShadow(QFrame::Sunken);
+    line->setFrameShape(QFrame::HLine);
+    ui->toolBar->addWidget(line);
+
     mSettingsAction = ui->toolBar->addAction(QIcon(":/icons8_settings_3_32px.png"), "Settings");
     connect(mSettingsAction, &QAction::triggered, this, &MainWindow::showSettingsPage);
 

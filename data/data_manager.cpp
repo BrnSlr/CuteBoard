@@ -204,9 +204,16 @@ void QTBDataManager::loadDataSources()
 
 
             QFileInfo fileinfo(filename);
-            if( fileinfo.suffix() != "so" && fileinfo.suffix() != "dll"){
+#ifdef __linux__
+            if( fileinfo.suffix() != "so"){
                 continue;
             }
+#elif _WIN32
+            if( fileinfo.suffix() != "dll"){
+                continue;
+            }
+#endif
+
 
             QPluginLoader pluginLoader(dataSrcDir.absoluteFilePath(filename), this);
 

@@ -7,6 +7,8 @@ ElementPickerWidget::ElementPickerWidget(QWidget *parent, QTBDashboardElement::E
 {
     ui->setupUi(this);
 
+    connect(ui->listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SIGNAL(elementDoubleClicked()));
+
     QStringList elements = ElementFactory::Instance()->getElementsName();
 
     for (int i=0; i< elements.count(); i++)

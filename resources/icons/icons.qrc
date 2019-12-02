@@ -37,5 +37,6 @@
         <file>icons8_past_filled_32px.png</file>
         <file>icons8_pause_32px.png</file>
         <file>elements/icons8_alarms_50px.png</file>
+        <file>icons8_indent_50px.png</file>
     </qresource>
 </RCC>

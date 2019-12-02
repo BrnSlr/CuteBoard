@@ -2,6 +2,7 @@
 #define QDBCIRCULARGAUGE_H
 
 #include "value_display.h"
+#include "dashboard/elements_base/gaugerect.h"
 #include "dashboard/elements_base/circularaxis.h"
 
 #define CGAUGE_NAME "Value - Gauge Radial"
@@ -40,6 +41,7 @@ public:
     bool axisTicksVisible() const;
     bool axisLabelsVisible() const;
     bool thresholdsVisible() const;
+    QTBGaugeRect::GaugeStyle radialStyle() const;
 
     void setAxisScale(const AxisScale &axisScale);
     void setAxisMaxCustom(double axisMaxCustom);
@@ -47,25 +49,14 @@ public:
     void setAxisTicksVisible(bool axisTicksVisible);
     void setAxisLabelsVisible(bool axisLabelsVisible);
     void setThresholdsVisible(bool thresholdsVisible);
+    void setRadialStyle(const QTBGaugeRect::GaugeStyle &radialStyle);
 
 protected:
-    QTBCircularAxis *mAxis;
-    QCPRange mAxisRange;
-    double mValueAngle;
-    QBrush mNeedleBrush;
-    bool mAxisTicksVisible;
-    bool mAxisLabelsVisible;
+    QTBGaugeRect *mGauge;
     AxisScale mAxisScale;
     double mAxisMaxCustom;
     double mAxisMinCustom;
-    bool mNeedleVisible;
-    bool mThresholdsVisible;
 
-    QList<QPair<QColor, double> > mLowThresholdsBandColors;
-    QList<QPair<QColor, double> > mHighThresholdsBandColors;
-
-    void drawColorBands(QCPPainter *painter);
-    void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
 };
 
 static ElementRegister<QTBValueGaugeRadial> cgaugeRegister(QString(CGAUGE_NAME), QTBDashboardElement::etSingleParam,":/elements/icons8_speed_50px.png");

@@ -23,7 +23,7 @@ void QTBValueGaugeVertical::initializeElement(QTBoard *dashboard)
         mAxisRect->axis(QCPAxis::atLeft)->setVisible(true);
         mAxisRect->axis(QCPAxis::atBottom)->setVisible(false);
 
-        mAxisRect->axis(QCPAxis::atLeft)->setBasePen(QPen(dashboard->frontColor()));
+        mAxisRect->axis(QCPAxis::atLeft)->setBasePen(Qt::NoPen);
         mAxisRect->axis(QCPAxis::atBottom)->setBasePen(Qt::NoPen);
 
         mAxisRect->axis(QCPAxis::atLeft)->setTickPen(QPen(dashboard->frontColor()));
@@ -43,6 +43,11 @@ void QTBValueGaugeVertical::initializeElement(QTBoard *dashboard)
         mAxisRect->axis(QCPAxis::atLeft)->setOffset(5);
         mAxisRect->axis(QCPAxis::atLeft)->setPadding(1);
         mAxisRect->axis(QCPAxis::atLeft)->setTickLabelPadding(3);
+
+        mAxisRect->axis(QCPAxis::atLeft)->setTickLengthOut(mAxisRect->axis(QCPAxis::atLeft)->tickLengthIn());
+        mAxisRect->axis(QCPAxis::atLeft)->setTickLengthIn(0);
+        mAxisRect->axis(QCPAxis::atLeft)->setSubTickLengthOut(mAxisRect->axis(QCPAxis::atLeft)->subTickLengthIn());
+        mAxisRect->axis(QCPAxis::atLeft)->setSubTickLengthIn(0);
 
         mAxisRect->axis(QCPAxis::atBottom)->setRange(0.5, 1.5);
         mAxisRect->setMinimumMargins(QMargins(15, 15, 15, 15));
@@ -218,12 +223,6 @@ void QTBValueGaugeVertical::updateSizeConstraints()
 
 void QTBValueGaugeVertical::checkSizeAndVisibility()
 {
-//    if(mValueVisible) {
-//        if(!mTextValue->visible()) {
-//            mTextValue->setMaximumSize(mRect.width(), 0);
-//            mMainLayout->needUpdate(true);
-//        }
-//    }
     QTBValueDisplay::checkSizeAndVisibility();
 }
 
@@ -298,11 +297,9 @@ void QTBValueGaugeVertical::setAxisTicksVisible(bool axisTicksVisible)
 {
     mAxisTicksVisible = axisTicksVisible;
     if(mAxisTicksVisible) {
-        mAxisRect->axis(QCPAxis::atLeft)->setBasePen(QPen(mBoard->frontColor()));
         mAxisRect->axis(QCPAxis::atLeft)->setTickPen(QPen(mBoard->frontColor()));
         mAxisRect->axis(QCPAxis::atLeft)->setSubTickPen(QPen(mBoard->frontColor()));
     } else {
-        mAxisRect->axis(QCPAxis::atLeft)->setBasePen(Qt::NoPen);
         mAxisRect->axis(QCPAxis::atLeft)->setTickPen(Qt::NoPen);
         mAxisRect->axis(QCPAxis::atLeft)->setSubTickPen(Qt::NoPen);
     }

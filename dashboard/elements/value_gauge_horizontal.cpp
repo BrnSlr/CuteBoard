@@ -18,7 +18,7 @@ void QTBValueGaugeHorizontal::initializeElement(QTBoard *dashboard)
         mAxisRect->showAxis(QCPAxis::atLeft,false);
         mAxisRect->showAxis(QCPAxis::atBottom,true);
 
-        mAxisRect->axis(QCPAxis::atBottom)->setBasePen(QPen(dashboard->frontColor()));
+        mAxisRect->axis(QCPAxis::atBottom)->setBasePen(Qt::NoPen);
         mAxisRect->axis(QCPAxis::atLeft)->setBasePen(Qt::NoPen);
 
         mAxisRect->axis(QCPAxis::atBottom)->setTickPen(QPen(dashboard->frontColor()));
@@ -39,8 +39,14 @@ void QTBValueGaugeHorizontal::initializeElement(QTBoard *dashboard)
         mAxisRect->axis(QCPAxis::atBottom)->setPadding(1);
         mAxisRect->axis(QCPAxis::atBottom)->setTickLabelPadding(3);
 
+        mAxisRect->axis(QCPAxis::atBottom)->setTickLengthOut(mAxisRect->axis(QCPAxis::atBottom)->tickLengthIn());
+        mAxisRect->axis(QCPAxis::atBottom)->setTickLengthIn(0);
+        mAxisRect->axis(QCPAxis::atBottom)->setSubTickLengthOut(mAxisRect->axis(QCPAxis::atBottom)->subTickLengthIn());
+        mAxisRect->axis(QCPAxis::atBottom)->setSubTickLengthIn(0);
+
         mAxisRect->axis(QCPAxis::atLeft)->setRange(0.5, 1.5);
-        mAxisRect->setMinimumMargins(QMargins(15, 15, 15, 15));
+//        mAxisRect->setMinimumMargins(QMargins(15, 15, 15, 15));
+        mAxisRect->setMinimumMargins(QMargins(15, 5, 15, 5));
 
         mBar = new QCPBars(mAxisRect->axis(QCPAxis::atLeft), mAxisRect->axis(QCPAxis::atTop));
         mBar->setWidth(1);
@@ -187,39 +193,44 @@ void QTBValueGaugeHorizontal::updateSizeConstraints()
 
 void QTBValueGaugeHorizontal::checkSizeAndVisibility()
 {
-    //    if(mValueVisible) {
-    //        if(!mTextValue->visible()) {
-    //            mTextValue->setMaximumSize(mRect.width(), 0);
-    //            mMainLayout->needUpdate(true);
-    //        }
-    //    }
     QTBValueDisplay::checkSizeAndVisibility();
+}
+
+void QTBValueGaugeHorizontal::updateElement()
+{
+    if(mAxisTicksVisible || mAxisLabelsVisible || mAxisGridVisible)
+        mAxisRect->axis(QCPAxis::atBottom)->setVisible(true);
+    else
+        mAxisRect->axis(QCPAxis::atBottom)->setVisible(false);
+
+    QTBValueDisplay::updateElement();
 }
 
 void QTBValueGaugeHorizontal::setAxisTicksVisible(bool axisTicksVisible)
 {
     mAxisTicksVisible = axisTicksVisible;
     if(mAxisTicksVisible) {
-        mAxisRect->axis(QCPAxis::atBottom)->setBasePen(QPen(mBoard->frontColor()));
         mAxisRect->axis(QCPAxis::atBottom)->setTickPen(QPen(mBoard->frontColor()));
         mAxisRect->axis(QCPAxis::atBottom)->setSubTickPen(QPen(mBoard->frontColor()));
     } else {
-        mAxisRect->axis(QCPAxis::atBottom)->setBasePen(Qt::NoPen);
         mAxisRect->axis(QCPAxis::atBottom)->setTickPen(Qt::NoPen);
         mAxisRect->axis(QCPAxis::atBottom)->setSubTickPen(Qt::NoPen);
     }
+    updateElement();
 }
 
 void QTBValueGaugeHorizontal::setAxisLabelsVisible(bool axisLabelsVisible)
 {
     mAxisLabelsVisible = axisLabelsVisible;
     mAxisRect->axis(QCPAxis::atBottom)->setTickLabels(mAxisLabelsVisible);
+    updateElement();
 }
 
 void QTBValueGaugeHorizontal::setAxisGridVisible(bool axisGridVisible)
 {
     mAxisGridVisible = axisGridVisible;
     mAxisRect->axis(QCPAxis::atBottom)->grid()->setVisible(mAxisGridVisible);
+    updateElement();
 }
 
 int QTBValueGaugeHorizontal::defaultWidth()

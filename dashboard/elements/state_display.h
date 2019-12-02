@@ -17,6 +17,7 @@ public:
     virtual void updateDashboardParameters(QTBDashboardParameter::UpdateMode mode = QTBDashboardParameter::umValue) Q_DECL_OVERRIDE;
     virtual void loadSettings(QSettings *settings) Q_DECL_OVERRIDE;
     virtual void saveSettings(QSettings *settings) Q_DECL_OVERRIDE;
+    virtual void checkParameters() Q_DECL_OVERRIDE;
 
     void processNewSamples() Q_DECL_OVERRIDE;
 };

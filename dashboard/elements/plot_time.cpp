@@ -48,16 +48,18 @@ void QTBPlotTime::initializeElement(QTBoard *dashboard)
         QTBDashboardElement::initializeElement(dashboard);
 
         mLayout->initializeParentPlot(dashboard);
-        mLayout->setParent(this);
+        mLayout->setLayer(QLatin1String("main"));
+        //        mLayout->setParent(this);
 
         mAxisRect = new QTBAxisRect(dashboard);
         mAxisRect->setMinimumMargins(QMargins(50,15,10,15));
 
         mLegendLayout = new QTBLayoutGrid();
         mLegendLayout->initializeParentPlot(dashboard);
-        mLegendLayout->setMinimumSize(50,50);
+        //        mLegendLayout->setMinimumSize(50,50);
         mLegendLayout->setRowSpacing(0);
         mLegendLayout->setMargins(QMargins(0,0,0,0));
+        mLegendLayout->setLayer(QLatin1String("main"));
 
         mLegendEmptyElementFirst = new QCPLayoutElement(dashboard);
         mLegendEmptyElementFirst->setMinimumSize(0.1,0.1);
@@ -140,7 +142,7 @@ void QTBPlotTime::loadConfigurations(QSettings *settings)
                     mLegendPosition == lpRight) {
                 legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
             } else {
-                legend->setOrientation(QTBValueDisplay::doHorizontal);
+                legend->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
             }
 
             mLegendLayout->take(mLegendEmptyElementLast);
@@ -222,7 +224,7 @@ void QTBPlotTime::addParameter(QSharedPointer<QTBDashboardParameter> dashParamet
                 mLegendPosition == lpRight) {
             legend->setOrientation(QTBValueDisplay::doVerticalAlignLeftRight);
         } else {
-            legend->setOrientation(QTBValueDisplay::doHorizontal);
+            legend->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
         }
 
         mLegendLayout->take(mLegendEmptyElementLast);
@@ -265,12 +267,18 @@ void QTBPlotTime::removeDashParameter(int index)
 
 void QTBPlotTime::processNewSamples()
 {
+    for(int i=0;i<mLegendLayout->elementCount();i++) {
+        auto * element = qobject_cast<QTBValueDisplay *>(mLegendLayout->elementAt(i));
+        if(element) {
+            element->processNewSamples();
+        }
+    }
     for(int i=0; i< parametersCount(); i++) {
         QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(i);
         if(dashParam && dashParam->getParameterId() > 0) {
             if(i < mAxisRect->graphs().count()) {
                 mAxisRect->graphs().at(i)->addData(dashParam->getTimestamp(), dashParam->getValueDouble());
-                mAxisRect->graphs().at(i)->data()->removeBefore(dashParam->getTimestamp()-mXAxisHistory);
+                mAxisRect->graphs().at(i)->data()->removeBefore(dashParam->getTimestamp()-(mXAxisHistory+1));
             }
         }
     }
@@ -297,20 +305,22 @@ void QTBPlotTime::processHistoricalSamples()
 
 void QTBPlotTime::updateLegendSize()
 {
+    if(mLegendVisible) {
     QSizeF size = mBoard->dashboardLayout()->singleElementSize();
 
     if(mLegendPosition == lpLeft ||
             mLegendPosition == lpRight) {
-        mLegendLayout->setMinimumSize(size.width(), 50);
+            mLegendLayout->setMinimumSize(size.width(), 0.1);
         for(int i=1; i< mLegendLayout->elementCount() - 1;i++) {
             mLegendLayout->elementAt(i)->setMinimumSize(size.width(), 0);
             mLegendLayout->elementAt(i)->setMaximumSize(size.width(), size.height());
         }
     } else {
-        mLegendLayout->setMinimumSize(50, size.height() / 2);
+            mLegendLayout->setMinimumSize(0.1, size.height());
         for(int i=1; i< mLegendLayout->elementCount() - 1;i++) {
-            mLegendLayout->elementAt(i)->setMinimumSize(2*size.width(), 0);
-            mLegendLayout->elementAt(i)->setMaximumSize(2*size.width(), size.height() / 2);
+                mLegendLayout->elementAt(i)->setMinimumSize(size.width(), 0);
+                mLegendLayout->elementAt(i)->setMaximumSize(size.width(), size.height());
+            }
         }
     }
 }
@@ -399,6 +409,7 @@ void QTBPlotTime::updateThresholdsItems()
 
                 if(mThresholdsVisible && dashParam->parameterConfiguration()->itemsThresholdsVisible()) {
                     auto* l = new QCPItemStraightLine(mBoard);
+                    l->setLayer(QLatin1String("grid"));
                     l->point1->setType(QCPItemPosition::ptPlotCoords);
                     l->point2->setType(QCPItemPosition::ptPlotCoords);
                     l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
@@ -434,12 +445,10 @@ void QTBPlotTime::updateThresholdsItems()
                         QColor color = lowIt.value().color();
                         color.setAlpha(200);
 
-                        QColor color2 = color;
-                        color2.setAlpha(150);
                         QLinearGradient gradient(0, 1, 0, 0);
                         gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
                         gradient.setColorAt(1, color);
-                        gradient.setColorAt(0.95, color2);
+                        gradient.setColorAt(0.1, QColor::fromRgbF(0, 0, 0, 0));
                         gradient.setColorAt(0, QColor::fromRgbF(0, 0, 0, 0));
                         brush = QBrush(gradient);
                         break;
@@ -458,6 +467,7 @@ void QTBPlotTime::updateThresholdsItems()
                 highIt.previous();
                 if(mThresholdsVisible && dashParam->parameterConfiguration()->itemsThresholdsVisible()) {
                     auto* l = new QCPItemStraightLine(mBoard);
+                    l->setLayer(QLatin1String("grid"));
                     l->point1->setType(QCPItemPosition::ptPlotCoords);
                     l->point2->setType(QCPItemPosition::ptPlotCoords);
                     l->point1->setAxes(mAxisRect->axis(QCPAxis::atBottom), mAxisRect->axis(QCPAxis::atLeft));
@@ -492,12 +502,10 @@ void QTBPlotTime::updateThresholdsItems()
                         QColor color = highIt.value().color();
                         color.setAlpha(200);
 
-                        QColor color2 = color;
-                        color2.setAlpha(150);
                         QLinearGradient gradient(0, 1, 0, 0);
                         gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
                         gradient.setColorAt(1, color);
-                        gradient.setColorAt(0.95, color2);
+                        gradient.setColorAt(0.1, QColor::fromRgbF(0, 0, 0, 0));
                         gradient.setColorAt(0, QColor::fromRgbF(0, 0, 0, 0));
                         brush = QBrush(gradient);
                         break;
@@ -541,12 +549,10 @@ void QTBPlotTime::updateGraphsStyle()
                 case QTBParameterConfiguration::bsGradient :
                     QColor color = dashParam->parameterConfiguration()->defaultColorSettingsRef().color();
                     color.setAlpha(200);
-                    QColor color2 = color;
-                    color2.setAlpha(150);
                     QLinearGradient gradient(0, 1, 0, 0);
                     gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
                     gradient.setColorAt(1, color);
-                    gradient.setColorAt(0.95, color2);
+                    gradient.setColorAt(0.1, QColor::fromRgbF(0, 0, 0, 0));
                     gradient.setColorAt(0, QColor::fromRgbF(0, 0, 0, 0));
                     QBrush brush(gradient);
 
@@ -631,7 +637,7 @@ void QTBPlotTime::updateLayout()
         for(int i=0;i<mLegendLayout->elementCount();i++) {
             auto * element = qobject_cast<QTBValueDisplay *>(mLegendLayout->elementAt(i));
             if(element) {
-                element->setOrientation(QTBValueDisplay::doHorizontal);
+                element->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
             }
         }
         mLegendLayout->setColumnStretchFactor(0,0.01);
@@ -654,13 +660,24 @@ void QTBPlotTime::updateLayout()
         for(int i=0;i<mLegendLayout->elementCount();i++) {
             auto * element = qobject_cast<QTBValueDisplay *>(mLegendLayout->elementAt(i));
             if(element) {
-                element->setOrientation(QTBValueDisplay::doHorizontal);
+                element->setOrientation(QTBValueDisplay::doVerticalAlignCenter);
             }
         }
         mLegendLayout->setColumnStretchFactor(0,0.01);
         mLegendLayout->setColumnStretchFactor(mLegendLayout->elementCount() - 1,0.01);
         break;
     }
+
+    if(mYAxisLabelsVisible || mYAxisGridVisible || mYAxisTicksVisible)
+        mAxisRect->axis(QCPAxis::atLeft)->setVisible(true);
+    else
+        mAxisRect->axis(QCPAxis::atLeft)->setVisible(false);
+
+
+    if(mXAxisLabelsVisible || mXAxisGridVisible || mXAxisTicksVisible)
+        mAxisRect->axis(QCPAxis::atBottom)->setVisible(true);
+    else
+        mAxisRect->axis(QCPAxis::atBottom)->setVisible(false);
 
     if(mYAxisLabelsVisible)
         mAxisRect->setMinimumMargins(QMargins(50,15,22,15));
@@ -670,6 +687,7 @@ void QTBPlotTime::updateLayout()
 
 void QTBPlotTime::updateElement()
 {
+    updateLegendSize();
     updateLayout();
 
     for(int i=0;i<mLegendLayout->elementCount();i++) {
@@ -685,11 +703,20 @@ void QTBPlotTime::updateElement()
 
 void QTBPlotTime::update(QCPLayoutElement::UpdatePhase phase)
 {
-    QTBLayoutReactiveElement::update(phase);
-
-    if(phase == upLayout) {
+    QTBDashboardElement::update(phase);
+    switch (phase)
+    {
+    case upPreparation:
+    {
         updateLegendSize();
+        break;
+    }
+    case upLayout:
+    {
         mLayout->setOuterRect(rect());
+        break;
+    }
+    default: break;
     }
 
     mLayout->update(phase);
@@ -717,7 +744,6 @@ void QTBPlotTime::setLegendPosition(const LegendPosition &legendPosition)
 {
     if(legendPosition != mLegendPosition) {
         mLegendPosition = legendPosition;
-        updateElement();
     }
 }
 
@@ -730,7 +756,6 @@ void QTBPlotTime::setLegendVisible(bool legendVisible)
 {
     if(legendVisible != mLegendVisible) {
         mLegendVisible = legendVisible;
-        updateElement();
     }
 }
 

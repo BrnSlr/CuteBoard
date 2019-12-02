@@ -23,7 +23,9 @@ int main(int argc, char *argv[])
         qApp->setStyleSheet(ts.readAll());
     }
 
-    QApplication::addLibraryPath("/home/safran/ADLINK/Vortex_v2/Device/VortexOpenSplice/6.10.0p2/HDE/x86_64.linux/lib/");
+    QFont ft = app.font();
+    ft.setPointSizeF(8.5);
+    app.setFont(ft);
 
     MainWindow mainWindow;
     mainWindow.setWindowState(Qt::WindowMaximized);

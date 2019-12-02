@@ -42,13 +42,18 @@ public:
     int singleElementRowCount() const;
     void setSingleElementRowCount(int singleElementRowCount);
 
+    QString backgroundPath();
     QString background() const;
     void setBackground(const QString &background);
+
+    QString pageDirectory() const;
+    void setPageDirectory(const QString &pageDirectory);
 
 private:
     QString mSettingsPath;
 
     QString mName;
+    QString mPageDirectory;
     QString mDescription;
     QString mBackground;
     int mColumnCount;

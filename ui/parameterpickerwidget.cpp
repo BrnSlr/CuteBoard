@@ -4,10 +4,12 @@
 ParameterPickerWidget::ParameterPickerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ParameterPickerWidget),
-    mDataManager(nullptr)
+    mDataManager(nullptr),
+    mTreeMode(true)
 {
     ui->setupUi(this);
     connect(ui->lineEdit, SIGNAL(textChanged(QString)), this, SLOT(searchString(QString)));
+    connect(ui->toListToolButton, SIGNAL(toggled(bool)), this, SLOT(changeListDisplay()));
 }
 
 ParameterPickerWidget::~ParameterPickerWidget()
@@ -26,6 +28,7 @@ void ParameterPickerWidget::updateParameterList()
             QString sourceName = i.value();
             QTreeWidgetItem *parentItem = nullptr;
 
+            if(mTreeMode) {
             if(!sourceName.isEmpty()) {
 
                 QStringList arbo = sourceName.split(QChar('/'));
@@ -59,6 +62,7 @@ void ParameterPickerWidget::updateParameterList()
                     }
                 }
             }
+            }
 
             QTreeWidgetItem *item = new QTreeWidgetItem();
             item->setText(0,i.key());
@@ -76,6 +80,12 @@ void ParameterPickerWidget::updateParameterList()
     searchString(ui->lineEdit->text());
 }
 
+void ParameterPickerWidget::changeListDisplay()
+{
+    mTreeMode = ui->toListToolButton->isChecked();
+    updateParameterList();
+}
+
 void ParameterPickerWidget::setDataManager(const QSharedPointer<QTBDataManager> &dataManager)
 {
     mDataManager = dataManager;
@@ -84,12 +94,23 @@ void ParameterPickerWidget::setDataManager(const QSharedPointer<QTBDataManager> 
 void ParameterPickerWidget::searchString(const QString& str)
 {
     for (int k=0;k<ui->listWidget->topLevelItemCount();k++) {
+        searchAndHide(str, ui->listWidget->topLevelItem(k));
+    }
+}
+
+void ParameterPickerWidget::searchAndHide(const QString &str, QTreeWidgetItem *item)
+{
+    if(item->childCount() == 0) {
         bool toHide = true;
         if (str.isEmpty())
             toHide = false;
-        if(ui->listWidget->topLevelItem(k)->text(0).contains(str))
+        if(item->text(0).contains(str))
             toHide = false;
-        ui->listWidget->topLevelItem(k)->setHidden(toHide);
+        item->setHidden(toHide);
+    } else {
+        for (int k=0;k<item->childCount();k++) {
+            searchAndHide(str, item->child(k));
+        }
     }
 }
 

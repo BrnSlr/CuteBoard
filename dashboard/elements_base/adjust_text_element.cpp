@@ -1,5 +1,8 @@
 #include "adjust_text_element.h"
 
+bool andFunc(bool a, bool b) {return a && b;};
+bool orFunc(bool a, bool b) {return a || b;};
+
 QTBAdjustTextElement::QTBAdjustTextElement(QTBoard *dashboard) :
     QCPTextElement (dashboard),
     mMaxPointSize(11),
@@ -73,21 +76,45 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
                 switch(mAdjustStrategy) {
                 case asHide:
                 {
+                    pointSize = font.pointSize();
+                    int adjustPoint = -1;
+                    std::function<bool(int, int)> compareIntFunc = std::less_equal<int>();
+                    std::function<bool(bool,bool)> compareRectFunc = andFunc;
+
+                        QFontMetrics fontMetrics(font);
+                        QRect boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
+
+                    if (compareRectFunc(compareIntFunc(boundingRect.height(),int(mRect.height())),
+                                        compareIntFunc(boundingRect.width(),int(mRect.width())))) {
+                        adjustPoint = 1;
+                        compareIntFunc = std::greater_equal<int>();
+                        compareRectFunc = orFunc;
+                }
+
+                    pointSize += adjustPoint;
+
                     for (;;) {
                         font.setPointSize(pointSize);
                         QFontMetrics fontMetrics(font);
-                        QRect boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
-                        if (boundingRect.height() <= int(mRect.height()) &&
-                                boundingRect.width() <= int(mRect.width())) {
+                        boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
+
+                        if (compareRectFunc(compareIntFunc(boundingRect.height(),int(mRect.height())),
+                                            compareIntFunc(boundingRect.width(),int(mRect.width())))) {
+                            if(adjustPoint < 0) {
                             mFont.setPointSize(pointSize);
+                            }
                             break;
                         }
-                        pointSize -= 1;
+
                         if (pointSize < mMinPointSize) {
                             setVisible(false);
                             setMinimumSize(QSize(0,0));
                             break;
+                        } else if (pointSize > mMaxPointSize) {
+                            break;
                         }
+                        mFont.setPointSize(pointSize);
+                        pointSize += adjustPoint;
                     }
                     break;
                 }
@@ -104,35 +131,6 @@ void QTBAdjustTextElement::update(QCPLayoutElement::UpdatePhase phase)
                         pointSize -= 1;
 
                         if (pointSize <= 0) {
-                            setVisible(false);
-                            setMinimumSize(QSize(0,0));
-                            break;
-                        }
-                    }
-
-                    if(visible()) {
-                        QFontMetrics fontMetrics(mFont);
-                        QRect boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
-                        if (boundingRect.width() > mRect.width()) {
-                            mTextDisplayed = fontMetrics.elidedText(mText, Qt::ElideMiddle, int(mRect.width()));
-                        }
-                    }
-
-                    break;
-                }
-                case asElideAndHide:
-                {
-                    for (;;) {
-                        font.setPointSize(pointSize);
-                        QFontMetrics fontMetrics(font);
-                        QRect boundingRect = fontMetrics.boundingRect(mRect.toRect(), textFlags(), mText);
-                        if (boundingRect.height() <= mRect.height()) {
-                            mFont.setPointSize(pointSize);
-                            break;
-                        }
-                        pointSize -= 1;
-
-                        if (pointSize < mMinPointSize) {
                             setVisible(false);
                             setMinimumSize(QSize(0,0));
                             break;

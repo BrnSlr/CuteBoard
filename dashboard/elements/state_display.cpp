@@ -37,6 +37,23 @@ void QTBStateDisplay::saveSettings(QSettings *settings)
     settings->endGroup();
 }
 
+void QTBStateDisplay::checkParameters()
+{
+    for(int i= 0; i< mDashParameters.count();i++) {
+        QSharedPointer<QTBParameter> param;
+        if(mBoard->dataManager())
+            param = mBoard->dataManager()->parameter(mDashParameters.at(i)->getLabel());
+
+        if(param){
+            mDashParameters.at(i)->setUnit(QString());
+            mDashParameters.at(i)->setParameterId(param->parameterId());
+        } else {
+            mDashParameters.at(i)->setUnit(QString());
+            mDashParameters.at(i)->setParameterId(0);
+        }
+    }
+}
+
 void QTBStateDisplay::processNewSamples()
 {
     QSharedPointer<QTBDashboardParameter> dashParam = dashParameter(0);
