@@ -1,0 +1,8 @@
+{
+    "Keys" : [ "Alarm Panel" ],
+    "Description" : "Alarm Panel Description Json",
+    "ToolTip" : "Alarm Panel Tooltip Json",
+    "Type" : 1,
+    "IconPath" : ":/icons8_alarms_50px.png",
+    "Category" : "10 - Alarming"
+}

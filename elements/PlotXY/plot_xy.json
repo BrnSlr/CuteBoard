@@ -1,0 +1,10 @@
+{
+    "Keys" : [ "Plot XY" ],
+    "Description" : "Plot XY Description Json",
+    "Type" : 2,
+    "TimeSeriesType" : 2,
+    "TimeSeriesSize" : 2,
+    "ToolTip" : "Plot XY Tooltip Json",
+    "IconPath" : ":/icons8_curve_50px.png",
+    "Category" : "00 - Time-series - Scalar"
+}

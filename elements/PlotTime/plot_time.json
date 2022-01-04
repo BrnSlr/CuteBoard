@@ -1,0 +1,10 @@
+{
+    "Keys" : [ "Plot Time" ],
+    "Description" : "Plot Time Description Json",
+    "Type" : 2,
+    "TimeSeriesType" : 2,
+    "TimeSeriesSize" : 4,
+    "ToolTip" : "Plot Time Tooltip Json",
+    "IconPath" : ":/icons8_cosine_50px.png",
+    "Category" : "00 - Time-series - Scalar"
+}

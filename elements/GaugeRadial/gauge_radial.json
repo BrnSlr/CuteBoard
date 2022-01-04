@@ -1,0 +1,10 @@
+{
+    "Keys" : [ "Gauge Radial" ],
+    "Description" : "Gauge Radial Description Json",
+    "Type" : 2,
+    "TimeSeriesType" : 2,
+    "TimeSeriesSize" : 2,
+    "ToolTip" : "Gauge Radial Tooltip Json",
+    "IconPath" : ":/icons8_speed_50px.png",
+    "Category" : "00 - Time-series - Scalar"
+}

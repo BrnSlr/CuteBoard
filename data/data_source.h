@@ -1,11 +1,15 @@
-#ifndef DATA_SOURCE_H
-#define DATA_SOURCE_H
+#ifndef DATASOURCE_H
+#define DATASOURCE_H
 
+#include <QObject>
+#include "data_global.h"
 #include "data_manager.h"
+#include "log4qt/logger.h"
 
-class DataSource : public QObject
+class DATASHARED_EXPORT DataSource : public QObject
 {
     Q_OBJECT
+    LOG4QT_DECLARE_QCLASS_LOGGER
 public:
 
     enum DataSourceStatus {
@@ -15,76 +19,39 @@ public:
     };
     Q_ENUM(DataSourceStatus)
 
-    DataSource() : QObject(),
-        mDataManager(nullptr),
+    DataSource(QString name) : QObject(),
         mStatus(dssIdle),
-        mAutoStart(false) {}
+        mName(name){}
 
-    virtual ~DataSource() {}
+    virtual ~DataSource() {
 
-    virtual bool startAcquisition() { return false; }
-    virtual bool stopAcquisition() { return false; }
-
-    bool autoStart() const
-    {
-        return mAutoStart;
     }
 
-    void setAutoStart(bool autoStart)
+    virtual bool registerParameter(const QSharedPointer<TimeSeries>& param) = 0;
+    virtual void unregisterParameter(quint32 parameterId) = 0;
+    virtual void unregisterParameter(const QString& label) = 0;
+    virtual void clearParameters() = 0;
+
+    QString name() const
     {
-        mAutoStart = autoStart;
+        return mName;
     }
 
-    void updateSample(quint32 serieIndex, double timestamp, QTBDataValue value)
-    {
-        QMutexLocker locker(&mMutex);
-        mData.insert(serieIndex, QTBDataSample(timestamp, value));
-    }
-
-    QString currentPath() { return mCurrentPath; }
-
-    bool registerParameter(const QSharedPointer<QTBParameter>& param)
-    {
-        if(mDataManager)
-            return mDataManager->registerParameter(param);
-        else
-            return false;
-    }
-
-    void unregisterParameter(quint32 parameterId)
-    {
-        if(mDataManager)
-            mDataManager->unregisterParameter(parameterId);
-    }
-
-    void unregisterParameter(const QString& label)
-    {
-        if(mDataManager)
-            mDataManager->unregisterParameter(label);
-    }
 
 signals:
     void statusChanged();
-    void updateDashboard();
 
-private:
-    void setDataManager(QTBDataManager *dataManager)
+protected:
+    void setDataManager(DataManager *dataManager)
     {
-        mDataManager = dataManager;
-    }
-
-    void updateDashboardData()
-    {
-        if(mStatus == dssRunning) {
-            QMutexLocker locker(&mMutex);
-            QHash<quint32, QTBDataSample>::iterator i;
-            for (i = mData.begin(); i != mData.end(); ++i) {
-                mDataManager->addSampleUnsafe(i.key(),
-                                              i.value().datationSec(),
-                                              i.value().value());
-            }
+        if(dataManager) {
+            mDataManager = dataManager;
+            dataManagerInitialized();
         }
+
     }
+
+    virtual void dataManagerInitialized(){}
 
     void setStatus(const DataSourceStatus &status)
     {
@@ -96,43 +63,12 @@ private:
 
     DataSourceStatus status() {return mStatus; }
 
-    void start() {
-        if(mStatus != dssRunning) {
-            if(startAcquisition()) {
-                setStatus(dssRunning);
-            } else {
-                if(stopAcquisition()) {
-                    setStatus(dssIdle);
-                } else {
-                    setStatus(dssError);
-                }
-            }
-        }
-    }
-
-    void stop() {
-        if(mStatus == dssRunning) {
-            if(stopAcquisition()) {
-                setStatus(dssIdle);
-            } else {
-                setStatus(dssError);
-            }
-        }
-    }
-
-    void setCurrentPath(const QString &currentPath) {
-        mCurrentPath = currentPath;
-    }
-
-    QTBDataManager* mDataManager;
-    QString mCurrentPath;
+    DataManager *mDataManager;
     DataSourceStatus mStatus;
-    QMutex mMutex;
-    QHash<quint32, QTBDataSample> mData;
-    bool mAutoStart;
+    QVector<QSharedPointer<TimeSeries>> mListParam;
+    QString mName;
 
-    friend class QTBDataManager;
-    friend class QTBSettingsDialog;
-
+    friend class DataManager;
+    friend class SettingsDialog;
 };
-#endif // DATA_SOURCE_H
+#endif // DATASOURCE_H

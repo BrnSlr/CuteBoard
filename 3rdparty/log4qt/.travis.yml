@@ -1,0 +1,33 @@
+language: cpp
+
+sudo: required
+
+dist: xenial
+
+compiler:
+- gcc
+
+os:
+- linux
+
+env:
+- QT_VERSION=qt57 QT_PPA=qt571
+- QT_VERSION=qt58 QT_PPA=qt58
+- QT_VERSION=qt59 QT_PPA=qt594
+- QT_VERSION=qt510 QT_PPA=qt-5.10.1
+- QT_VERSION=qt511 QT_PPA=qt-5.11.3
+- QT_VERSION=qt512 QT_PPA=qt-5.12.2
+
+before_install:
+  - sudo add-apt-repository --yes ppa:beineri/opt-$QT_PPA-xenial
+  - sudo apt-get update -qq
+
+install:
+  - sudo apt-get -y install $QT_VERSION-meta-minimal
+
+script:
+  - . /opt/$QT_VERSION/bin/$QT_VERSION-env.sh
+  - qmake
+  - make
+  - make check
+

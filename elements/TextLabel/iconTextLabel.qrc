@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons8_sentence_case_filled_50px.png</file>
+    </qresource>
+</RCC>

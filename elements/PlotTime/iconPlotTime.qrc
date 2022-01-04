@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons8_cosine_50px.png</file>
+    </qresource>
+</RCC>

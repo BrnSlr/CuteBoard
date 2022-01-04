@@ -2,7 +2,7 @@
 Real time Dashboard (Qt) 
 
 ### Live visualization
-![Live](resources/gif/live3.gif) 
+![Live](Demo.gif) 
 
 ### Edition
-![Design](resources/gif/edit2.gif) 
+![Design](Design.gif) 

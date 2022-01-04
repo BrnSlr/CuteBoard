@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons8_alarms_50px.png</file>
+    </qresource>
+</RCC>

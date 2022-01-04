@@ -1,0 +1,12 @@
+#ifndef TABLE_VALUES_GLOBAL_H
+#define TABLE_VALUES_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(TABLEVALUES_LIBRARY)
+#  define TABLEVALUES_EXPORT Q_DECL_EXPORT
+#else
+#  define TABLEVALUES_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // TABLE_VALUES_GLOBAL_H

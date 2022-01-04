@@ -1,0 +1,10 @@
+{
+    "Keys" : [ "Gauge Horizontal" ],
+    "Description" : "Gauge HorizontaDescription Json",
+    "Type" : 2,
+    "TimeSeriesType" : 2,
+    "TimeSeriesSize" : 2,
+    "ToolTip" : "Gauge Horizontal Tooltip Json",
+    "IconPath" : ":/icons8_hgauge_50px.png",
+    "Category" : "00 - Time-series - Scalar"
+}

@@ -1,0 +1,8 @@
+{
+    "Keys" : [ "Text Label" ],
+    "Description" : "Text Label Description Json",
+    "ToolTip" : "Text Label Tooltip Json",
+    "Type" : 10,
+    "IconPath" : ":/icons8_sentence_case_filled_50px.png",
+    "Category" : "90 - Misc"
+}

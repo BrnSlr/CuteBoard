@@ -1,0 +1,14 @@
+#ifndef GAUGE_RADIAL_SHARED_H
+#define GAUGE_RADIAL_SHARED_H
+
+#ifdef GAUGE_RADIAL_STATIC
+#   define GAUGE_RADIAL_EXPORT
+#else
+#  if defined(GAUGE_RADIAL_LIBRARY)
+#    define GAUGE_RADIAL_EXPORT Q_DECL_EXPORT
+#  else
+#    define GAUGE_RADIAL_EXPORT Q_DECL_IMPORT
+#  endif
+#endif
+
+#endif // GAUGE_RADIAL_SHARED_H

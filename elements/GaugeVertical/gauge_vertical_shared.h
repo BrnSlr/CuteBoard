@@ -1,0 +1,12 @@
+#ifndef VERTICAL_GAUGE_GLOBAL_H
+#define VERTICAL_GAUGE_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(GAUGE_VERTICAL_LIBRARY)
+#  define GAUGE_VERTICAL_EXPORT Q_DECL_EXPORT
+#else
+#  define GAUGE_VERTICAL_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // VERTICAL_GAUGE_GLOBAL_H

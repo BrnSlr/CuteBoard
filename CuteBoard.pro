@@ -1,6 +1,11 @@
 TEMPLATE = subdirs
 CONFIG += ordered
 
-SUBDIRS = \
-    datasources \
-    app 
+SUBDIRS += \
+    3rdparty/log4qt \
+    data \
+    data_sources \
+    3rdparty/qcustomplot \
+    ui \
+    elements \
+    app

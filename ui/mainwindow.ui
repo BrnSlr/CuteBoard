@@ -32,13 +32,22 @@
     </property>
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
-      <widget class="HomeWidget" name="homeWidget"/>
-      <widget class="DashboardWidget" name="dashboardWidget"/>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <widget class="HomePage" name="homePage"/>
+      <widget class="BoardPage" name="boardPage"/>
      </widget>
     </item>
    </layout>
   </widget>
   <widget class="QToolBar" name="toolBar">
+   <property name="contextMenuPolicy">
+    <enum>Qt::NoContextMenu</enum>
+   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -50,6 +59,12 @@
    </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>48</width>
+     <height>32</height>
+    </size>
    </property>
    <property name="toolButtonStyle">
     <enum>Qt::ToolButtonTextUnderIcon</enum>
@@ -73,15 +88,15 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>DashboardWidget</class>
+   <class>BoardPage</class>
    <extends>QWidget</extends>
-   <header>ui/dashboardwidget.h</header>
+   <header>ui/board/board_page.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>HomeWidget</class>
+   <class>HomePage</class>
    <extends>QWidget</extends>
-   <header>ui/homewidget.h</header>
+   <header>ui/home/home_page.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

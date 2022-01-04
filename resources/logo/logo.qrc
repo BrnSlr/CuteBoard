@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>cuteboard.png</file>
-        <file>splash.png</file>
-    </qresource>
-</RCC>

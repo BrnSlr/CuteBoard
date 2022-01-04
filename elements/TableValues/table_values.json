@@ -1,0 +1,10 @@
+{
+    "Keys" : [ "Table Values" ],
+    "Description" : "Table Values Element",
+    "Type" : 2,
+    "TimeSeriesType" : 2,
+    "TimeSeriesSize" : 4,
+    "ToolTip" : "Table Values",
+    "IconPath" : ":/icons8_grid_3_50px.png",
+    "Category" : "00 - Time-series - Scalar"
+}
